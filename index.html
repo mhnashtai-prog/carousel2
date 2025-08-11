@@ -63,16 +63,16 @@
         
         .carousel-container {
             width: 100%;
-            padding: 2rem 1rem;
+            padding: 2rem 0;
             position: relative;
             perspective: 1000px;
-            overflow: hidden;
+            overflow: visible;
         }
         
         .carousel-track {
             display: flex;
             gap: 2rem;
-            padding: 3rem 2rem;
+            padding: 3rem;
             cursor: grab;
             user-select: none;
             transform-style: preserve-3d;
@@ -357,9 +357,9 @@
                 return;
             }
             
-            const scrollRatio = track.scrollLeft / maxScroll;
+            const scrollRatio = Math.max(0, Math.min(1, track.scrollLeft / maxScroll));
             const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
-            const newLeft = Math.max(0, Math.min(thumbMaxLeft, scrollRatio * thumbMaxLeft));
+            const newLeft = scrollRatio * thumbMaxLeft;
             thumb.style.left = `${newLeft}px`;
         }
         
@@ -372,8 +372,12 @@
             }, 100);
         }
         
-        // Initialize
-        updateThumbPosition();
+        // Initialize and force initial update
+        setTimeout(() => {
+            updateThumbPosition();
+            // Ensure track starts at beginning
+            track.scrollLeft = 0;
+        }, 100);
         window.addEventListener('resize', handleResize);
         
         // Track scroll handler with RAF for smooth updates
@@ -440,23 +444,21 @@
             if (!isThumbDragging) return;
             e.preventDefault();
             
-            const currentX = (e.pageX || e.touches[0].pageX);
-            const deltaX = currentX - dragStartX;
+            const rect = scrollbarContainer.getBoundingClientRect();
+            const currentX = (e.pageX || e.touches[0].pageX) - rect.left;
+            const thumbWidth = thumb.offsetWidth;
+            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumbWidth;
             
             // Calculate new thumb position
-            const currentLeft = parseFloat(thumb.style.left || 0);
-            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
-            const newLeft = Math.max(0, Math.min(thumbMaxLeft, currentLeft + deltaX));
+            const newLeft = Math.max(0, Math.min(thumbMaxLeft, currentX - thumbWidth / 2));
             
-            // Update thumb position
+            // Update thumb position immediately
             thumb.style.left = `${newLeft}px`;
             
             // Calculate and update track scroll position
-            const scrollRatio = newLeft / thumbMaxLeft;
+            const scrollRatio = thumbMaxLeft > 0 ? newLeft / thumbMaxLeft : 0;
             const maxScroll = track.scrollWidth - track.clientWidth;
             track.scrollLeft = scrollRatio * maxScroll;
-            
-            dragStartX = currentX;
         }
         
         function endThumbDrag() {
