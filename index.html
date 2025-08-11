@@ -200,40 +200,73 @@
         }
 
         /* NEW SCROLLBAR STYLES */
-        .scrollbar-container {
-            width: 80%;
-            height: 8px;
-            background: rgba(0,0,0,0.1);
-            border-radius: 10px;
-            margin: 0 auto;
-            position: relative;
-            margin-top: 1rem;
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
+        /* Scrollbar Styles */
+.scrollbar-container {
+    width: 80%;
+    height: 14px; /* Thicker track */
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    margin: 2rem auto;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    box-shadow: 
+        inset 0 1px 2px rgba(255, 255, 255, 0.2),
+        0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-        .scrollbar-track {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
+.scrollbar-track {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
 
-        .scrollbar-thumb {
-            height: 100%;
-            width: 30%;
-            background: var(--accent);
-            border-radius: 10px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            cursor: grab;
-            transition: background 0.2s ease;
-        }
+.scrollbar-thumb {
+    height: 100%;
+    width: 4cm; /* Fixed 4cm length */
+    min-width: 40px; /* Fallback */
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.6) 0%, 
+        rgba(255, 255, 255, 0.9) 50%, 
+        rgba(255, 255, 255, 0.6) 100%);
+    border-radius: 10px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    cursor: grab;
+    transition: 
+        transform 0.2s ease,
+        background 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
 
-        .scrollbar-thumb:active {
-            cursor: grabbing;
-            background: #5a4bc7;
-        }
+.scrollbar-thumb:active {
+    cursor: grabbing;
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.7) 0%, 
+        rgba(255, 255, 255, 1) 50%, 
+        rgba(255, 255, 255, 0.7) 100%);
+    transform: scale(1.05, 1.2);
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 1);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .scrollbar-container {
+        width: 90%;
+        height: 12px;
+    }
+    
+    .scrollbar-thumb {
+        width: 3cm; /* Slightly smaller on mobile */
+        min-width: 35px;
+    }
+}
 
         @media (max-width: 768px) {
             .header {
@@ -317,160 +350,151 @@
         </div>
     </div>
 
- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const track = document.querySelector('.carousel-track');
-        const thumb = document.querySelector('.scrollbar-thumb');
-        const scrollbarTrack = document.querySelector('.scrollbar-track');
-        const scrollbarContainer = document.querySelector('.scrollbar-container');
+ document.addEventListener('DOMContentLoaded', () => {
+    const track = document.querySelector('.carousel-track');
+    const thumb = document.querySelector('.scrollbar-thumb');
+    const scrollbarTrack = document.querySelector('.scrollbar-track');
+    const scrollbarContainer = document.querySelector('.scrollbar-container');
+    
+    // Convert 4cm to pixels (approx 1cm = 37.8px)
+    const thumbWidthInPx = 4 * 37.8;
+    thumb.style.width = `${thumbWidthInPx}px`;
+    
+    // Update thumb position based on scroll
+    const updateThumbPosition = () => {
+        const scrollableWidth = track.scrollWidth - track.clientWidth;
+        const scrollRatio = track.scrollLeft / scrollableWidth;
+        const thumbMaxLeft = scrollbarContainer.offsetWidth - thumbWidthInPx;
         
-        // 1. Initialize scrollbar
-        const initScrollbar = () => {
-            const trackWidth = track.scrollWidth;
-            const containerWidth = track.clientWidth;
-            const thumbWidth = Math.max(30, (containerWidth / trackWidth) * scrollbarContainer.offsetWidth);
+        thumb.style.left = `${scrollRatio * thumbMaxLeft}px`;
+    };
+    
+    // Handle window resize
+    const handleResize = () => {
+        updateThumbPosition();
+    };
+    
+    // Track dragging
+    let isDragging = false;
+    let isThumbDragging = false;
+    let startX, scrollLeft, thumbStartX;
+    
+    // Initialize
+    updateThumbPosition();
+    window.addEventListener('resize', handleResize);
+    track.addEventListener('scroll', updateThumbPosition);
+    
+    // Carousel drag handlers
+    const startDrag = (e) => {
+        isDragging = true;
+        track.classList.add('dragging');
+        startX = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
+        scrollLeft = track.scrollLeft;
+        track.style.cursor = 'grabbing';
+    };
+    
+    const duringDrag = (e) => {
+        if(!isDragging && !isThumbDragging) return;
+        e.preventDefault();
+        
+        if(isDragging) {
+            const x = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
+            const walk = x - startX;
+            track.scrollLeft = scrollLeft - walk;
+        }
+        
+        if(isThumbDragging) {
+            const x = (e.pageX || e.touches[0].pageX) - scrollbarTrack.getBoundingClientRect().left;
+            const dragDistance = x - thumbStartX;
+            const maxLeft = scrollbarContainer.offsetWidth - thumbWidthInPx;
             
-            thumb.style.width = `${thumbWidth}px`;
-            updateThumbPosition();
-        };
-        
-        // 2. Update thumb position based on scroll
-        const updateThumbPosition = () => {
-            const scrollableWidth = track.scrollWidth - track.clientWidth;
-            const scrollRatio = track.scrollLeft / scrollableWidth;
-            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
+            let newLeft = parseFloat(thumb.style.left || 0) + dragDistance;
+            newLeft = Math.max(0, Math.min(maxLeft, newLeft));
             
-            thumb.style.left = `${scrollRatio * thumbMaxLeft}px`;
-        };
-        
-        // 3. Handle window resize
-        const handleResize = () => {
-            initScrollbar();
-        };
-        
-        // 4. Track dragging
-        let isDragging = false;
-        let isThumbDragging = false;
-        let startX, scrollLeft, thumbStartX;
-        
-        // Initialize
-        initScrollbar();
-        window.addEventListener('resize', handleResize);
-        track.addEventListener('scroll', updateThumbPosition);
-        
-        // Carousel drag handlers (unchanged from original)
-        const startDrag = (e) => {
-            isDragging = true;
-            track.classList.add('dragging');
-            startX = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
-            scrollLeft = track.scrollLeft;
-            track.style.cursor = 'grabbing';
-        };
-        
-        const duringDrag = (e) => {
-            if(!isDragging && !isThumbDragging) return;
-            e.preventDefault();
+            thumb.style.left = `${newLeft}px`;
+            thumbStartX = x;
             
-            if(isDragging) {
-                const x = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
-                const walk = x - startX;
-                track.scrollLeft = scrollLeft - walk;
-            }
-            
-            if(isThumbDragging) {
-                const x = (e.pageX || e.touches[0].pageX) - scrollbarTrack.getBoundingClientRect().left;
-                const dragDistance = x - thumbStartX;
-                const thumbWidth = thumb.offsetWidth;
-                const maxLeft = scrollbarContainer.offsetWidth - thumbWidth;
-                
-                let newLeft = parseFloat(thumb.style.left || 0) + dragDistance;
-                newLeft = Math.max(0, Math.min(maxLeft, newLeft));
-                
-                thumb.style.left = `${newLeft}px`;
-                thumbStartX = x;
-                
-                // Update track scroll position
-                const scrollRatio = newLeft / maxLeft;
-                const maxScroll = track.scrollWidth - track.clientWidth;
-                track.scrollLeft = scrollRatio * maxScroll;
-            }
-        };
-        
-        const endDrag = () => {
-            isDragging = false;
-            isThumbDragging = false;
-            track.classList.remove('dragging');
-            track.style.cursor = 'grab';
-            thumb.style.cursor = 'grab';
-        };
-        
-        // Mouse events for track
-        track.addEventListener('mousedown', startDrag);
-        document.addEventListener('mousemove', duringDrag);
-        document.addEventListener('mouseup', endDrag);
-        
-        // Touch events for track
-        track.addEventListener('touchstart', startDrag, { passive: false });
-        document.addEventListener('touchmove', duringDrag, { passive: false });
-        document.addEventListener('touchend', endDrag);
-        
-        // Thumb dragging
-        thumb.addEventListener('mousedown', (e) => {
-            isThumbDragging = true;
-            thumbStartX = e.pageX - thumb.getBoundingClientRect().left;
-            thumb.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-        
-        thumb.addEventListener('touchstart', (e) => {
-            isThumbDragging = true;
-            thumbStartX = e.touches[0].pageX - thumb.getBoundingClientRect().left;
-            thumb.style.cursor = 'grabbing';
-            e.preventDefault();
-        }, { passive: false });
-        
-        // Click on scrollbar track to jump to position
-        scrollbarTrack.addEventListener('click', (e) => {
-            if (e.target === thumb) return;
-            
-            const rect = scrollbarTrack.getBoundingClientRect();
-            const clickX = e.pageX - rect.left;
-            const thumbWidth = thumb.offsetWidth;
-            const newLeft = Math.min(rect.width - thumbWidth, Math.max(0, clickX - thumbWidth / 2));
-            
-            // Calculate scroll position
-            const maxLeft = rect.width - thumbWidth;
+            // Update track scroll position
             const scrollRatio = newLeft / maxLeft;
             const maxScroll = track.scrollWidth - track.clientWidth;
-            
-            // Apply with smooth scrolling
-            track.scrollTo({
-                left: scrollRatio * maxScroll,
-                behavior: 'smooth'
-            });
-        });
+            track.scrollLeft = scrollRatio * maxScroll;
+        }
+    };
+    
+    const endDrag = () => {
+        isDragging = false;
+        isThumbDragging = false;
+        track.classList.remove('dragging');
+        track.style.cursor = 'grab';
+        thumb.style.cursor = 'grab';
+    };
+    
+    // Mouse events for track
+    track.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', duringDrag);
+    document.addEventListener('mouseup', endDrag);
+    
+    // Touch events for track
+    track.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('touchmove', duringDrag, { passive: false });
+    document.addEventListener('touchend', endDrag);
+    
+    // Thumb dragging
+    thumb.addEventListener('mousedown', (e) => {
+        isThumbDragging = true;
+        thumbStartX = e.pageX - thumb.getBoundingClientRect().left;
+        thumb.style.cursor = 'grabbing';
+        e.preventDefault();
+    });
+    
+    thumb.addEventListener('touchstart', (e) => {
+        isThumbDragging = true;
+        thumbStartX = e.touches[0].pageX - thumb.getBoundingClientRect().left;
+        thumb.style.cursor = 'grabbing';
+        e.preventDefault();
+    }, { passive: false });
+    
+    // Click on scrollbar track to jump to position
+    scrollbarTrack.addEventListener('click', (e) => {
+        if (e.target === thumb) return;
         
-        // 3D hover effects (unchanged from original)
-        document.querySelectorAll('.tile').forEach(tile => {
-            tile.addEventListener('mousemove', (e) => {
-                const rect = tile.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const angleX = (y - centerY) / 15;
-                const angleY = (centerX - x) / 15;
-                
-                tile.style.transform = `translateY(-15px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
-                tile.querySelector('.shadow').style.opacity = '0.8';
-            });
-            
-            tile.addEventListener('mouseleave', () => {
-                tile.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
-                tile.querySelector('.shadow').style.opacity = '0.5';
-            });
+        const rect = scrollbarTrack.getBoundingClientRect();
+        const clickX = e.pageX - rect.left;
+        const newLeft = Math.min(rect.width - thumbWidthInPx, Math.max(0, clickX - thumbWidthInPx / 2));
+        
+        // Calculate scroll position
+        const maxLeft = rect.width - thumbWidthInPx;
+        const scrollRatio = newLeft / maxLeft;
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        
+        // Apply with smooth scrolling
+        track.scrollTo({
+            left: scrollRatio * maxScroll,
+            behavior: 'smooth'
         });
     });
+    
+    // 3D hover effects
+    document.querySelectorAll('.tile').forEach(tile => {
+        tile.addEventListener('mousemove', (e) => {
+            const rect = tile.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const angleX = (y - centerY) / 15;
+            const angleY = (centerX - x) / 15;
+            
+            tile.style.transform = `translateY(-15px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+            tile.querySelector('.shadow').style.opacity = '0.8';
+        });
+        
+        tile.addEventListener('mouseleave', () => {
+            tile.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+            tile.querySelector('.shadow').style.opacity = '0.5';
+        });
+    });
+});
     </script>
     </script>
 </body>
