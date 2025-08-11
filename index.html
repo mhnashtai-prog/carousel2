@@ -81,6 +81,7 @@
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
+            scroll-behavior: smooth;
         }
         
         .carousel-track::-webkit-scrollbar {
@@ -90,6 +91,7 @@
         .carousel-track.dragging {
             cursor: grabbing;
             scroll-snap-type: none;
+            scroll-behavior: auto;
         }
         
         .tile {
@@ -201,7 +203,7 @@
         .scrollbar-container {
             width: 80%;
             height: 14px;
-            background: rgba(100, 100, 100, 0.3); /* 20% more grey */
+            background: rgba(100, 100, 100, 0.3);
             border-radius: 10px;
             margin: 2rem auto;
             position: relative;
@@ -220,7 +222,7 @@
 
         .scrollbar-thumb {
             height: 100%;
-            width: 120px; /* Fixed pixel width works better than cm */
+            width: 120px;
             background: linear-gradient(90deg, 
                 rgba(180, 180, 180, 0.8) 0%, 
                 rgba(220, 220, 220, 0.9) 50%, 
@@ -339,100 +341,143 @@
         const scrollbarTrack = document.querySelector('.scrollbar-track');
         const scrollbarContainer = document.querySelector('.scrollbar-container');
         
-        // Initialize scrollbar thumb position
-        function updateThumbPosition() {
-            const maxScroll = track.scrollWidth - track.clientWidth;
-            if (maxScroll <= 0) return;
-            
-            const scrollRatio = track.scrollLeft / maxScroll;
-            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
-            thumb.style.left = `${scrollRatio * thumbMaxLeft}px`;
-        }
-        
-        // Handle window resize
-        function handleResize() {
-            updateThumbPosition();
-        }
-        
         // Track dragging variables
         let isDragging = false;
         let isThumbDragging = false;
-        let startX, scrollLeft, thumbStartX;
+        let startX, scrollLeft, dragStartX;
+        let rafId = null;
+        
+        // Update scrollbar thumb position based on track scroll
+        function updateThumbPosition() {
+            if (isThumbDragging) return; // Don't update while thumb dragging
+            
+            const maxScroll = track.scrollWidth - track.clientWidth;
+            if (maxScroll <= 0) {
+                thumb.style.left = '0px';
+                return;
+            }
+            
+            const scrollRatio = track.scrollLeft / maxScroll;
+            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
+            const newLeft = Math.max(0, Math.min(thumbMaxLeft, scrollRatio * thumbMaxLeft));
+            thumb.style.left = `${newLeft}px`;
+        }
+        
+        // Debounced resize handler
+        let resizeTimeout;
+        function handleResize() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateThumbPosition();
+            }, 100);
+        }
         
         // Initialize
         updateThumbPosition();
         window.addEventListener('resize', handleResize);
-        track.addEventListener('scroll', updateThumbPosition);
+        
+        // Track scroll handler with RAF for smooth updates
+        track.addEventListener('scroll', () => {
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(updateThumbPosition);
+        });
         
         // Carousel drag handlers
-        function startDrag(e) {
+        function startTrackDrag(e) {
+            if (e.target.closest('.scrollbar-container')) return;
+            
             isDragging = true;
             track.classList.add('dragging');
-            startX = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
+            startX = (e.pageX || e.touches[0].pageX);
             scrollLeft = track.scrollLeft;
             track.style.cursor = 'grabbing';
+            
+            // Prevent text selection during drag
+            e.preventDefault();
         }
         
-        function duringDrag(e) {
-            if(!isDragging && !isThumbDragging) return;
+        function duringTrackDrag(e) {
+            if (!isDragging) return;
             e.preventDefault();
             
-            if(isDragging) {
-                const x = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
-                const walk = x - startX;
-                track.scrollLeft = scrollLeft - walk;
-            }
+            const currentX = (e.pageX || e.touches[0].pageX);
+            const deltaX = currentX - startX;
             
-            if(isThumbDragging) {
-                const x = (e.pageX || e.touches[0].pageX) - scrollbarTrack.getBoundingClientRect().left;
-                const dragDistance = x - thumbStartX;
-                const maxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
-                
-                let newLeft = parseFloat(thumb.style.left || 0) + dragDistance;
-                newLeft = Math.max(0, Math.min(maxLeft, newLeft));
-                
-                thumb.style.left = `${newLeft}px`;
-                thumbStartX = x;
-                
-                // Update track scroll position
-                const scrollRatio = newLeft / maxLeft;
-                const maxScroll = track.scrollWidth - track.clientWidth;
-                track.scrollLeft = scrollRatio * maxScroll;
-            }
+            // Apply drag with momentum
+            track.scrollLeft = scrollLeft - deltaX;
         }
         
-        function endDrag() {
+        function endTrackDrag() {
             isDragging = false;
-            isThumbDragging = false;
             track.classList.remove('dragging');
             track.style.cursor = 'grab';
-            thumb.style.cursor = 'grab';
         }
         
         // Mouse events for track
-        track.addEventListener('mousedown', startDrag);
-        document.addEventListener('mousemove', duringDrag);
-        document.addEventListener('mouseup', endDrag);
+        track.addEventListener('mousedown', startTrackDrag);
+        document.addEventListener('mousemove', duringTrackDrag);
+        document.addEventListener('mouseup', endTrackDrag);
         
         // Touch events for track
-        track.addEventListener('touchstart', startDrag, { passive: false });
-        document.addEventListener('touchmove', duringDrag, { passive: false });
-        document.addEventListener('touchend', endDrag);
+        track.addEventListener('touchstart', startTrackDrag, { passive: false });
+        document.addEventListener('touchmove', duringTrackDrag, { passive: false });
+        document.addEventListener('touchend', endTrackDrag);
         
-        // Thumb dragging
-        thumb.addEventListener('mousedown', function(e) {
+        // Thumb dragging handlers
+        function startThumbDrag(e) {
             isThumbDragging = true;
-            thumbStartX = e.pageX - thumb.getBoundingClientRect().left;
+            dragStartX = (e.pageX || e.touches[0].pageX);
             thumb.style.cursor = 'grabbing';
+            
+            // Stop any ongoing scroll animations
+            track.style.scrollBehavior = 'auto';
+            
             e.preventDefault();
-        });
+            e.stopPropagation();
+        }
         
-        thumb.addEventListener('touchstart', function(e) {
-            isThumbDragging = true;
-            thumbStartX = e.touches[0].pageX - thumb.getBoundingClientRect().left;
-            thumb.style.cursor = 'grabbing';
+        function duringThumbDrag(e) {
+            if (!isThumbDragging) return;
             e.preventDefault();
-        }, { passive: false });
+            
+            const currentX = (e.pageX || e.touches[0].pageX);
+            const deltaX = currentX - dragStartX;
+            
+            // Calculate new thumb position
+            const currentLeft = parseFloat(thumb.style.left || 0);
+            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
+            const newLeft = Math.max(0, Math.min(thumbMaxLeft, currentLeft + deltaX));
+            
+            // Update thumb position
+            thumb.style.left = `${newLeft}px`;
+            
+            // Calculate and update track scroll position
+            const scrollRatio = newLeft / thumbMaxLeft;
+            const maxScroll = track.scrollWidth - track.clientWidth;
+            track.scrollLeft = scrollRatio * maxScroll;
+            
+            dragStartX = currentX;
+        }
+        
+        function endThumbDrag() {
+            isThumbDragging = false;
+            thumb.style.cursor = 'grab';
+            
+            // Re-enable smooth scrolling
+            setTimeout(() => {
+                track.style.scrollBehavior = 'smooth';
+            }, 100);
+        }
+        
+        // Thumb mouse events
+        thumb.addEventListener('mousedown', startThumbDrag);
+        document.addEventListener('mousemove', duringThumbDrag);
+        document.addEventListener('mouseup', endThumbDrag);
+        
+        // Thumb touch events
+        thumb.addEventListener('touchstart', startThumbDrag, { passive: false });
+        document.addEventListener('touchmove', duringThumbDrag, { passive: false });
+        document.addEventListener('touchend', endThumbDrag);
         
         // Click on scrollbar track to jump to position
         scrollbarTrack.addEventListener('click', function(e) {
@@ -441,28 +486,35 @@
             const rect = scrollbarTrack.getBoundingClientRect();
             const clickX = e.pageX - rect.left;
             const thumbWidth = thumb.offsetWidth;
-            const newLeft = Math.min(rect.width - thumbWidth, Math.max(0, clickX - thumbWidth / 2));
+            const thumbMaxLeft = rect.width - thumbWidth;
+            
+            // Calculate target position (center thumb on click point)
+            const targetLeft = Math.max(0, Math.min(thumbMaxLeft, clickX - thumbWidth / 2));
             
             // Calculate scroll position
-            const maxLeft = rect.width - thumbWidth;
-            const scrollRatio = newLeft / maxLeft;
+            const scrollRatio = targetLeft / thumbMaxLeft;
             const maxScroll = track.scrollWidth - track.clientWidth;
+            const targetScroll = scrollRatio * maxScroll;
             
-            // Apply with smooth scrolling
+            // Smooth scroll to target position
             track.scrollTo({
-                left: scrollRatio * maxScroll,
+                left: targetScroll,
                 behavior: 'smooth'
             });
         });
         
-        // 3D hover effects
+        // Enhanced 3D hover effects
         document.querySelectorAll('.tile').forEach(tile => {
             tile.addEventListener('mousemove', (e) => {
+                if (isDragging) return; // Skip hover effects while dragging
+                
                 const rect = tile.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
+                
+                // Calculate rotation angles based on mouse position
                 const angleX = (y - centerY) / 15;
                 const angleY = (centerX - x) / 15;
                 
@@ -474,6 +526,35 @@
                 tile.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
                 tile.querySelector('.shadow').style.opacity = '0.5';
             });
+        });
+        
+        // Prevent context menu on long press (mobile)
+        track.addEventListener('contextmenu', e => e.preventDefault());
+        thumb.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // Handle focus for accessibility
+        track.setAttribute('tabindex', '0');
+        track.addEventListener('keydown', (e) => {
+            const tileWidth = track.querySelector('.tile').offsetWidth + 32; // tile width + gap
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    track.scrollBy({ left: -tileWidth, behavior: 'smooth' });
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    track.scrollBy({ left: tileWidth, behavior: 'smooth' });
+                    e.preventDefault();
+                    break;
+                case 'Home':
+                    track.scrollTo({ left: 0, behavior: 'smooth' });
+                    e.preventDefault();
+                    break;
+                case 'End':
+                    track.scrollTo({ left: track.scrollWidth, behavior: 'smooth' });
+                    e.preventDefault();
+                    break;
+            }
         });
     });
     </script>
