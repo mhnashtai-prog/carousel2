@@ -61,12 +61,17 @@
             opacity: 0.7;
         }
         
+        .carousel-wrapper {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        
         .carousel-container {
             width: 100%;
             padding: 2rem 0;
             position: relative;
             perspective: 1000px;
-            overflow: visible;
         }
         
         .carousel-track {
@@ -76,22 +81,13 @@
             cursor: grab;
             user-select: none;
             transform-style: preserve-3d;
-            width: max-content;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            scroll-behavior: smooth;
-        }
-        
-        .carousel-track::-webkit-scrollbar {
-            display: none;
+            transition: transform 0.3s ease;
+            will-change: transform;
         }
         
         .carousel-track.dragging {
             cursor: grabbing;
-            scroll-snap-type: none;
-            scroll-behavior: auto;
+            transition: none;
         }
         
         .tile {
@@ -104,7 +100,6 @@
             transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
                         box-shadow 0.8s cubic-bezier(0.25, 1, 0.5, 1);
             box-shadow: var(--shadow);
-            scroll-snap-align: center;
         }
         
         .tile-content {
@@ -199,18 +194,18 @@
             opacity: 0.7;
         }
 
-        /* Enhanced Scrollbar Styles */
+        /* Enhanced Scrollbar Styles - Greyer and Thicker */
         .scrollbar-container {
             width: 80%;
-            height: 14px;
-            background: rgba(100, 100, 100, 0.3);
-            border-radius: 10px;
+            height: 24px; /* Made much thicker */
+            background: rgba(80, 80, 80, 0.6); /* Much greyer background */
+            border-radius: 15px;
             margin: 2rem auto;
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(8px);
             box-shadow: 
-                inset 0 1px 2px rgba(255, 255, 255, 0.2),
+                inset 0 2px 4px rgba(0, 0, 0, 0.3),
                 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
@@ -222,29 +217,37 @@
 
         .scrollbar-thumb {
             height: 100%;
-            width: 120px;
+            width: 140px; /* Made wider for easier grabbing */
             background: linear-gradient(90deg, 
-                rgba(180, 180, 180, 0.8) 0%, 
-                rgba(220, 220, 220, 0.9) 50%, 
-                rgba(180, 180, 180, 0.8) 100%);
-            border-radius: 10px;
+                rgba(120, 120, 120, 0.9) 0%, /* Much greyer */
+                rgba(150, 150, 150, 1) 50%, 
+                rgba(120, 120, 120, 0.9) 100%);
+            border-radius: 15px;
             position: absolute;
             left: 0;
             top: 0;
             cursor: grab;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.4);
             box-shadow: 
-                0 2px 6px rgba(0, 0, 0, 0.2),
-                inset 0 1px 1px rgba(255, 255, 255, 0.9);
+                0 3px 8px rgba(0, 0, 0, 0.3),
+                inset 0 1px 2px rgba(255, 255, 255, 0.6);
+        }
+
+        .scrollbar-thumb:hover {
+            background: linear-gradient(90deg, 
+                rgba(140, 140, 140, 0.95) 0%, 
+                rgba(170, 170, 170, 1) 50%, 
+                rgba(140, 140, 140, 0.95) 100%);
+            transform: scaleY(1.1);
         }
 
         .scrollbar-thumb:active {
             cursor: grabbing;
             background: linear-gradient(90deg, 
-                rgba(200, 200, 200, 0.9) 0%, 
-                rgba(240, 240, 240, 1) 50%, 
-                rgba(200, 200, 200, 0.9) 100%);
+                rgba(160, 160, 160, 1) 0%, 
+                rgba(190, 190, 190, 1) 50%, 
+                rgba(160, 160, 160, 1) 100%);
             transform: scaleY(1.15);
         }
 
@@ -260,11 +263,11 @@
 
             .scrollbar-container {
                 width: 90%;
-                height: 12px;
+                height: 20px;
             }
             
             .scrollbar-thumb {
-                width: 80px;
+                width: 100px;
             }
         }
     </style>
@@ -276,54 +279,56 @@
         <div class="author">by Majid Nashtai</div>
     </div>
     
-    <div class="carousel-container">
-        <div class="carousel-track">
-            <div class="tile">
-                <div class="tile-content">
-                    <div class="tile-number">01</div>
-                    <div class="tile-title">Grammar Rules</div>
+    <div class="carousel-wrapper">
+        <div class="carousel-container">
+            <div class="carousel-track">
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-number">01</div>
+                        <div class="tile-title">Grammar Rules</div>
+                    </div>
+                    <div class="shadow"></div>
                 </div>
-                <div class="shadow"></div>
-            </div>
-            
-            <div class="tile">
-                <div class="tile-content">
-                    <div class="tile-number">02</div>
-                    <div class="tile-title">Similar Words</div>
+                
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-number">02</div>
+                        <div class="tile-title">Similar Words</div>
+                    </div>
+                    <div class="shadow"></div>
                 </div>
-                <div class="shadow"></div>
-            </div>
-            
-            <div class="tile">
-                <div class="tile-content">
-                    <div class="tile-number">03</div>
-                    <div class="tile-title">Practice Tests</div>
+                
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-number">03</div>
+                        <div class="tile-title">Practice Tests</div>
+                    </div>
+                    <div class="shadow"></div>
                 </div>
-                <div class="shadow"></div>
-            </div>
-            
-            <div class="tile">
-                <div class="tile-content">
-                    <div class="tile-number">04</div>
-                    <div class="tile-title">Speaking Practice</div>
+                
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-number">04</div>
+                        <div class="tile-title">Speaking Practice</div>
+                    </div>
+                    <div class="shadow"></div>
                 </div>
-                <div class="shadow"></div>
-            </div>
-            
-            <div class="tile">
-                <div class="tile-content">
-                    <div class="tile-number">05</div>
-                    <div class="tile-title">Writing Practice</div>
+                
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-number">05</div>
+                        <div class="tile-title">Writing Practice</div>
+                    </div>
+                    <div class="shadow"></div>
                 </div>
-                <div class="shadow"></div>
-            </div>
-            
-            <div class="tile">
-                <div class="tile-content">
-                    <div class="tile-number">06</div>
-                    <div class="tile-title">Useful Expressions</div>
+                
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="div class="tile-number">06</div>
+                        <div class="tile-title">Useful Expressions</div>
+                    </div>
+                    <div class="shadow"></div>
                 </div>
-                <div class="shadow"></div>
             </div>
         </div>
     </div>
@@ -338,104 +343,72 @@
     document.addEventListener('DOMContentLoaded', function() {
         const track = document.querySelector('.carousel-track');
         const thumb = document.querySelector('.scrollbar-thumb');
-        const scrollbarTrack = document.querySelector('.scrollbar-track');
         const scrollbarContainer = document.querySelector('.scrollbar-container');
+        const scrollbarTrack = document.querySelector('.scrollbar-track');
         
-        // Track dragging variables
+        // Calculate dimensions
+        const tileWidth = 320; // Fixed tile width
+        const gap = 32; // 2rem gap
+        const totalTiles = 6;
+        const trackWidth = (tileWidth + gap) * totalTiles;
+        const viewportWidth = window.innerWidth;
+        const maxTranslateX = -(trackWidth - viewportWidth + 96); // 96px for padding
+        
+        let currentTranslateX = 0;
         let isDragging = false;
         let isThumbDragging = false;
-        let startX, scrollLeft, dragStartX;
-        let rafId = null;
+        let startX = 0;
+        let startTranslateX = 0;
         
-        // Update scrollbar thumb position based on track scroll
+        // Update thumb position based on current translate
         function updateThumbPosition() {
-            if (isThumbDragging) return; // Don't update while thumb dragging
+            if (isThumbDragging) return;
             
-            const maxScroll = track.scrollWidth - track.clientWidth;
-            if (maxScroll <= 0) {
-                thumb.style.left = '0px';
-                return;
-            }
-            
-            const scrollRatio = Math.max(0, Math.min(1, track.scrollLeft / maxScroll));
+            const progress = Math.abs(currentTranslateX) / Math.abs(maxTranslateX);
+            const clampedProgress = Math.max(0, Math.min(1, progress));
             const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
-            const newLeft = scrollRatio * thumbMaxLeft;
+            const newLeft = clampedProgress * thumbMaxLeft;
+            
             thumb.style.left = `${newLeft}px`;
         }
         
-        // Debounced resize handler
-        let resizeTimeout;
-        function handleResize() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                updateThumbPosition();
-            }, 100);
+        // Update carousel position
+        function updateCarouselPosition(translateX) {
+            currentTranslateX = Math.max(maxTranslateX, Math.min(0, translateX));
+            track.style.transform = `translateX(${currentTranslateX}px)`;
+            updateThumbPosition();
         }
         
-        // Initialize and force initial update
-        setTimeout(() => {
-            updateThumbPosition();
-            // Ensure track starts at beginning
-            track.scrollLeft = 0;
-        }, 100);
-        window.addEventListener('resize', handleResize);
-        
-        // Track scroll handler with RAF for smooth updates
-        track.addEventListener('scroll', () => {
-            if (rafId) cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(updateThumbPosition);
-        });
-        
-        // Carousel drag handlers
-        function startTrackDrag(e) {
-            if (e.target.closest('.scrollbar-container')) return;
-            
+        // Carousel dragging
+        function startCarouselDrag(e) {
             isDragging = true;
             track.classList.add('dragging');
-            startX = (e.pageX || e.touches[0].pageX);
-            scrollLeft = track.scrollLeft;
-            track.style.cursor = 'grabbing';
-            
-            // Prevent text selection during drag
+            startX = e.pageX || e.touches[0].pageX;
+            startTranslateX = currentTranslateX;
             e.preventDefault();
         }
         
-        function duringTrackDrag(e) {
+        function duringCarouselDrag(e) {
             if (!isDragging) return;
             e.preventDefault();
             
-            const currentX = (e.pageX || e.touches[0].pageX);
+            const currentX = e.pageX || e.touches[0].pageX;
             const deltaX = currentX - startX;
+            const newTranslateX = startTranslateX + deltaX;
             
-            // Apply drag with momentum
-            track.scrollLeft = scrollLeft - deltaX;
+            updateCarouselPosition(newTranslateX);
         }
         
-        function endTrackDrag() {
+        function endCarouselDrag() {
             isDragging = false;
             track.classList.remove('dragging');
-            track.style.cursor = 'grab';
         }
         
-        // Mouse events for track
-        track.addEventListener('mousedown', startTrackDrag);
-        document.addEventListener('mousemove', duringTrackDrag);
-        document.addEventListener('mouseup', endTrackDrag);
-        
-        // Touch events for track
-        track.addEventListener('touchstart', startTrackDrag, { passive: false });
-        document.addEventListener('touchmove', duringTrackDrag, { passive: false });
-        document.addEventListener('touchend', endTrackDrag);
-        
-        // Thumb dragging handlers
+        // Thumb dragging
         function startThumbDrag(e) {
             isThumbDragging = true;
-            dragStartX = (e.pageX || e.touches[0].pageX);
+            startX = e.pageX || e.touches[0].pageX;
             thumb.style.cursor = 'grabbing';
-            
-            // Stop any ongoing scroll animations
-            track.style.scrollBehavior = 'auto';
-            
             e.preventDefault();
             e.stopPropagation();
         }
@@ -446,77 +419,80 @@
             
             const rect = scrollbarContainer.getBoundingClientRect();
             const currentX = (e.pageX || e.touches[0].pageX) - rect.left;
-            const thumbWidth = thumb.offsetWidth;
-            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumbWidth;
+            const thumbMaxLeft = scrollbarContainer.offsetWidth - thumb.offsetWidth;
+            const newLeft = Math.max(0, Math.min(thumbMaxLeft, currentX - thumb.offsetWidth / 2));
             
-            // Calculate new thumb position
-            const newLeft = Math.max(0, Math.min(thumbMaxLeft, currentX - thumbWidth / 2));
-            
-            // Update thumb position immediately
+            // Update thumb position
             thumb.style.left = `${newLeft}px`;
             
-            // Calculate and update track scroll position
-            const scrollRatio = thumbMaxLeft > 0 ? newLeft / thumbMaxLeft : 0;
-            const maxScroll = track.scrollWidth - track.clientWidth;
-            track.scrollLeft = scrollRatio * maxScroll;
+            // Calculate carousel position
+            const progress = thumbMaxLeft > 0 ? newLeft / thumbMaxLeft : 0;
+            const newTranslateX = progress * maxTranslateX;
+            
+            // Update carousel
+            currentTranslateX = newTranslateX;
+            track.style.transform = `translateX(${currentTranslateX}px)`;
         }
         
         function endThumbDrag() {
             isThumbDragging = false;
             thumb.style.cursor = 'grab';
-            
-            // Re-enable smooth scrolling
-            setTimeout(() => {
-                track.style.scrollBehavior = 'smooth';
-            }, 100);
         }
         
-        // Thumb mouse events
-        thumb.addEventListener('mousedown', startThumbDrag);
-        document.addEventListener('mousemove', duringThumbDrag);
-        document.addEventListener('mouseup', endThumbDrag);
+        // Event listeners for carousel
+        track.addEventListener('mousedown', startCarouselDrag);
+        track.addEventListener('touchstart', startCarouselDrag, { passive: false });
         
-        // Thumb touch events
+        document.addEventListener('mousemove', duringCarouselDrag);
+        document.addEventListener('touchmove', duringCarouselDrag, { passive: false });
+        
+        document.addEventListener('mouseup', endCarouselDrag);
+        document.addEventListener('touchend', endCarouselDrag);
+        
+        // Event listeners for thumb
+        thumb.addEventListener('mousedown', startThumbDrag);
         thumb.addEventListener('touchstart', startThumbDrag, { passive: false });
+        
+        document.addEventListener('mousemove', duringThumbDrag);
         document.addEventListener('touchmove', duringThumbDrag, { passive: false });
+        
+        document.addEventListener('mouseup', endThumbDrag);
         document.addEventListener('touchend', endThumbDrag);
         
-        // Click on scrollbar track to jump to position
+        // Click on scrollbar track
         scrollbarTrack.addEventListener('click', function(e) {
             if (e.target === thumb) return;
             
             const rect = scrollbarTrack.getBoundingClientRect();
             const clickX = e.pageX - rect.left;
-            const thumbWidth = thumb.offsetWidth;
-            const thumbMaxLeft = rect.width - thumbWidth;
+            const thumbMaxLeft = rect.width - thumb.offsetWidth;
+            const targetLeft = Math.max(0, Math.min(thumbMaxLeft, clickX - thumb.offsetWidth / 2));
             
-            // Calculate target position (center thumb on click point)
-            const targetLeft = Math.max(0, Math.min(thumbMaxLeft, clickX - thumbWidth / 2));
+            // Update thumb
+            thumb.style.left = `${targetLeft}px`;
             
-            // Calculate scroll position
-            const scrollRatio = targetLeft / thumbMaxLeft;
-            const maxScroll = track.scrollWidth - track.clientWidth;
-            const targetScroll = scrollRatio * maxScroll;
+            // Update carousel
+            const progress = thumbMaxLeft > 0 ? targetLeft / thumbMaxLeft : 0;
+            const newTranslateX = progress * maxTranslateX;
             
-            // Smooth scroll to target position
-            track.scrollTo({
-                left: targetScroll,
-                behavior: 'smooth'
-            });
+            track.style.transition = 'transform 0.3s ease';
+            updateCarouselPosition(newTranslateX);
+            
+            setTimeout(() => {
+                track.style.transition = '';
+            }, 300);
         });
         
-        // Enhanced 3D hover effects
+        // 3D hover effects
         document.querySelectorAll('.tile').forEach(tile => {
             tile.addEventListener('mousemove', (e) => {
-                if (isDragging) return; // Skip hover effects while dragging
+                if (isDragging) return;
                 
                 const rect = tile.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                
-                // Calculate rotation angles based on mouse position
                 const angleX = (y - centerY) / 15;
                 const angleY = (centerX - x) / 15;
                 
@@ -530,33 +506,16 @@
             });
         });
         
-        // Prevent context menu on long press (mobile)
-        track.addEventListener('contextmenu', e => e.preventDefault());
-        thumb.addEventListener('contextmenu', e => e.preventDefault());
+        // Initialize
+        updateThumbPosition();
         
-        // Handle focus for accessibility
-        track.setAttribute('tabindex', '0');
-        track.addEventListener('keydown', (e) => {
-            const tileWidth = track.querySelector('.tile').offsetWidth + 32; // tile width + gap
-            
-            switch(e.key) {
-                case 'ArrowLeft':
-                    track.scrollBy({ left: -tileWidth, behavior: 'smooth' });
-                    e.preventDefault();
-                    break;
-                case 'ArrowRight':
-                    track.scrollBy({ left: tileWidth, behavior: 'smooth' });
-                    e.preventDefault();
-                    break;
-                case 'Home':
-                    track.scrollTo({ left: 0, behavior: 'smooth' });
-                    e.preventDefault();
-                    break;
-                case 'End':
-                    track.scrollTo({ left: track.scrollWidth, behavior: 'smooth' });
-                    e.preventDefault();
-                    break;
-            }
+        // Handle resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateThumbPosition();
+            }, 100);
         });
     });
     </script>
