@@ -198,7 +198,43 @@
             transform: translateZ(-30px) scale(0.9);
             opacity: 0.7;
         }
-        
+
+        /* NEW SCROLLBAR STYLES */
+        .scrollbar-container {
+            width: 80%;
+            height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin: 0 auto;
+            position: relative;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .scrollbar-track {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .scrollbar-thumb {
+            height: 100%;
+            width: 30%;
+            background: var(--accent);
+            border-radius: 10px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            cursor: grab;
+            transition: background 0.2s ease;
+        }
+
+        .scrollbar-thumb:active {
+            cursor: grabbing;
+            background: #5a4bc7;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 3rem 1rem 1rem;
@@ -207,6 +243,10 @@
             .carousel-track {
                 gap: 1.5rem;
                 padding: 3rem 1.5rem;
+            }
+
+            .scrollbar-container {
+                width: 90%;
             }
         }
     </style>
@@ -270,10 +310,20 @@
         </div>
     </div>
 
+    <!-- NEW SCROLLBAR -->
+    <div class="scrollbar-container">
+        <div class="scrollbar-track">
+            <div class="scrollbar-thumb"></div>
+        </div>
+    </div>
+
     <script>
     // BULLETPROOF CAROUSEL SCRIPT
     document.addEventListener('DOMContentLoaded', () => {
         const track = document.querySelector('.carousel-track');
+        const thumb = document.querySelector('.scrollbar-thumb');
+        const scrollbarTrack = document.querySelector('.scrollbar-track');
+        const scrollbarContainer = document.querySelector('.scrollbar-container');
         
         // 1. Force essential styles (mobile fallback)
         track.style.overflowX = 'scroll';
@@ -282,9 +332,39 @@
         
         // 2. Unified drag handling (works for mouse/touch)
         let isDragging = false;
+        let isThumbDragging = false;
         let startX;
         let scrollLeft;
+        let thumbStartX;
         
+        // Calculate thumb width based on visible content
+        const updateThumbSize = () => {
+            const visibleRatio = track.clientWidth / track.scrollWidth;
+            const thumbWidth = Math.max(30, scrollbarContainer.offsetWidth * visibleRatio);
+            thumb.style.width = `${thumbWidth}px`;
+        };
+        
+        // Update thumb position based on scroll
+        const updateThumbPosition = () => {
+            const scrollRatio = track.scrollLeft / (track.scrollWidth - track.clientWidth);
+            const availableSpace = scrollbarContainer.offsetWidth - thumb.offsetWidth;
+            thumb.style.left = `${scrollRatio * availableSpace}px`;
+        };
+        
+        // Initialize thumb size and position
+        updateThumbSize();
+        updateThumbPosition();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            updateThumbSize();
+            updateThumbPosition();
+        });
+        
+        // Track scroll events to update thumb position
+        track.addEventListener('scroll', updateThumbPosition);
+        
+        // Track dragging
         const startDrag = (e) => {
             isDragging = true;
             track.classList.add('dragging');
@@ -294,28 +374,83 @@
         };
         
         const duringDrag = (e) => {
-            if(!isDragging) return;
+            if(!isDragging && !isThumbDragging) return;
             e.preventDefault();
-            const x = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
-            const walk = x - startX;
-            track.scrollLeft = scrollLeft - walk;
+            
+            if(isDragging) {
+                const x = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
+                const walk = x - startX;
+                track.scrollLeft = scrollLeft - walk;
+            }
+            
+            if(isThumbDragging) {
+                const x = (e.pageX || e.touches[0].pageX) - scrollbarTrack.getBoundingClientRect().left;
+                const dragDistance = x - thumbStartX;
+                const thumbWidth = thumb.offsetWidth;
+                const maxLeft = scrollbarTrack.offsetWidth - thumbWidth;
+                
+                let newLeft = parseFloat(thumb.style.left || 0) + dragDistance;
+                newLeft = Math.max(0, Math.min(maxLeft, newLeft));
+                
+                thumb.style.left = `${newLeft}px`;
+                thumbStartX = x;
+                
+                // Update track scroll position
+                const scrollRatio = newLeft / maxLeft;
+                const maxScroll = track.scrollWidth - track.clientWidth;
+                track.scrollLeft = scrollRatio * maxScroll;
+            }
         };
         
         const endDrag = () => {
             isDragging = false;
+            isThumbDragging = false;
             track.classList.remove('dragging');
             track.style.cursor = 'grab';
         };
         
-        // Mouse events
+        // Mouse events for track
         track.addEventListener('mousedown', startDrag);
         document.addEventListener('mousemove', duringDrag);
         document.addEventListener('mouseup', endDrag);
         
-        // Touch events (with passive:false for iOS)
+        // Touch events for track (with passive:false for iOS)
         track.addEventListener('touchstart', startDrag, { passive: false });
         document.addEventListener('touchmove', duringDrag, { passive: false });
         document.addEventListener('touchend', endDrag);
+        
+        // Thumb dragging
+        thumb.addEventListener('mousedown', (e) => {
+            isThumbDragging = true;
+            thumbStartX = e.pageX - thumb.getBoundingClientRect().left;
+            thumb.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+        
+        thumb.addEventListener('touchstart', (e) => {
+            isThumbDragging = true;
+            thumbStartX = e.touches[0].pageX - thumb.getBoundingClientRect().left;
+            thumb.style.cursor = 'grabbing';
+            e.preventDefault();
+        }, { passive: false });
+        
+        // Click on scrollbar track to jump to position
+        scrollbarTrack.addEventListener('click', (e) => {
+            if (e.target === thumb) return;
+            
+            const rect = scrollbarTrack.getBoundingClientRect();
+            const clickX = e.pageX - rect.left;
+            const thumbWidth = thumb.offsetWidth;
+            const newLeft = Math.min(rect.width - thumbWidth, Math.max(0, clickX - thumbWidth / 2));
+            
+            thumb.style.left = `${newLeft}px`;
+            
+            // Update track scroll position
+            const maxLeft = rect.width - thumbWidth;
+            const scrollRatio = newLeft / maxLeft;
+            const maxScroll = track.scrollWidth - track.clientWidth;
+            track.scrollLeft = scrollRatio * maxScroll;
+        });
         
         // 3. 3D hover effects
         document.querySelectorAll('.tile').forEach(tile => {
