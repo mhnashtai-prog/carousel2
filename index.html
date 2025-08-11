@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CRITICAL VIEWPORT TAG FOR TOUCH DEVICES -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Language Generator | Majid Nashtai</title>
     <style>
         :root {
@@ -27,7 +28,9 @@
             color: var(--black);
             overflow-x: hidden;
             min-height: 100vh;
+            /* ESSENTIAL TOUCH CONTROLS */
             touch-action: pan-y;
+            overscroll-behavior-x: none;
         }
         
         .header {
@@ -267,64 +270,74 @@
         </div>
     </div>
 
- <script>
-// REPLACE ENTIRE SCRIPT TAG WITH THIS:
-document.addEventListener('DOMContentLoaded', () => {
-    const track = document.querySelector('.carousel-track');
-    
-    // 1. Add these CSS properties via JS as backup
-    track.style.overflowX = 'auto';
-    track.style.scrollBehavior = 'smooth';
-    track.style.webkitOverflowScrolling = 'touch';
-    
-    // 2. Simplified drag (works 100% on Netlify)
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-    
-    track.addEventListener('mousedown', (e) => {
-        isDown = true;
-        startX = e.pageX - track.offsetLeft;
-        scrollLeft = track.scrollLeft;
-        track.style.cursor = 'grabbing';
+    <script>
+    // BULLETPROOF CAROUSEL SCRIPT
+    document.addEventListener('DOMContentLoaded', () => {
+        const track = document.querySelector('.carousel-track');
+        
+        // 1. Force essential styles (mobile fallback)
+        track.style.overflowX = 'scroll';
+        track.style.scrollBehavior = 'smooth';
+        track.style.webkitOverflowScrolling = 'touch';
+        
+        // 2. Unified drag handling (works for mouse/touch)
+        let isDragging = false;
+        let startX;
+        let scrollLeft;
+        
+        const startDrag = (e) => {
+            isDragging = true;
+            track.classList.add('dragging');
+            startX = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
+            scrollLeft = track.scrollLeft;
+            track.style.cursor = 'grabbing';
+        };
+        
+        const duringDrag = (e) => {
+            if(!isDragging) return;
+            e.preventDefault();
+            const x = (e.pageX || e.touches[0].pageX) - track.offsetLeft;
+            const walk = x - startX;
+            track.scrollLeft = scrollLeft - walk;
+        };
+        
+        const endDrag = () => {
+            isDragging = false;
+            track.classList.remove('dragging');
+            track.style.cursor = 'grab';
+        };
+        
+        // Mouse events
+        track.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', duringDrag);
+        document.addEventListener('mouseup', endDrag);
+        
+        // Touch events (with passive:false for iOS)
+        track.addEventListener('touchstart', startDrag, { passive: false });
+        document.addEventListener('touchmove', duringDrag, { passive: false });
+        document.addEventListener('touchend', endDrag);
+        
+        // 3. 3D hover effects
+        document.querySelectorAll('.tile').forEach(tile => {
+            tile.addEventListener('mousemove', (e) => {
+                const rect = tile.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const angleX = (y - centerY) / 15;
+                const angleY = (centerX - x) / 15;
+                
+                tile.style.transform = `translateY(-15px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+                tile.querySelector('.shadow').style.opacity = '0.8';
+            });
+            
+            tile.addEventListener('mouseleave', () => {
+                tile.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+                tile.querySelector('.shadow').style.opacity = '0.5';
+            });
+        });
     });
-
-    track.addEventListener('mouseleave', () => {
-        isDown = false;
-        track.style.cursor = 'grab';
-    });
-
-    track.addEventListener('mouseup', () => {
-        isDown = false;
-        track.style.cursor = 'grab';
-    });
-
-    track.addEventListener('mousemove', (e) => {
-        if(!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - track.offsetLeft;
-        const walk = x - startX;
-        track.scrollLeft = scrollLeft - walk;
-    });
-
-    // 3. Touch support (critical for mobile)
-    track.addEventListener('touchstart', (e) => {
-        isDown = true;
-        startX = e.touches[0].pageX - track.offsetLeft;
-        scrollLeft = track.scrollLeft;
-    }, {passive: false});
-
-    track.addEventListener('touchmove', (e) => {
-        if(!isDown) return;
-        e.preventDefault();
-        const x = e.touches[0].pageX - track.offsetLeft;
-        const walk = x - startX;
-        track.scrollLeft = scrollLeft - walk;
-    }, {passive: false});
-
-    track.addEventListener('touchend', () => isDown = false);
-});
-</script>
     </script>
 </body>
 </html>
