@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AT A GLANCE – C1 Advanced Language Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;400&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-dark: #141414;
+  --layer2: #212124;
+  --btn-light: #454653;
+  --btn-hover: #55586a;
+  --lettuce: #7ed957;
+  --wrong: #ffcccc;
+  --light-grey: #4b4b4b;
+  --title-font: 'Montserrat', sans-serif;
+  --body-font: 'Roboto', sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg-dark);
+  font-family: var(--body-font);
+  color: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.layer-2 {
+  background: var(--layer2);
+  border-radius: 25px;
+  max-width: 1000px;
+  width: 94%;
+  padding: 20px;
+  position: relative;
+}
+.header { text-align: center; margin-bottom: 15px; position: relative; }
+.main-title { font-size: 2em; font-family: var(--title-font); font-weight: 700; }
+.subtitle { font-size: 1em; color: #aaa; }
+.creator { font-size: 1em; color: #aaa; }
+.test-number {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 1.8em;
+  font-weight: 700;
+  color: var(--lettuce);
+  display: none;
+}
+
+/* Menu page grid */
+.menu {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+.menu button {
+  background: var(--btn-light);
+  border: none;
+  color: #fff;
+  padding: 10px 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.menu button:hover { background: var(--btn-hover); }
+
+.exercise-area { max-height: 60vh; overflow-y: auto; padding-right: 10px; }
+
+/* Two-line question layout */
+.question-block {
+  margin-bottom: 20px;
+}
+.question-text {
+  margin-bottom: 6px;
+}
+.options {
+  display: flex;
+  justify-content: space-between; /* spread evenly */
+  padding: 0 40px; /* breathing room left/right */
+}
+.option {
+  background: var(--light-grey);
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.9em;
+  text-align: center;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.option.selected { border: 2px solid var(--lettuce); }
+.option.correct { background: var(--lettuce); color: #000; }
+.option.wrong { background: var(--wrong); color: #900; }
+
+.submit-btn {
+  display: block;
+  margin: 15px auto;
+  background: var(--lettuce);
+  border: none;
+  padding: 10px 20px;
+  font-family: var(--title-font);
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 15px;
+}
+.score {
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: 700;
+  margin-top: 10px;
+  display: none;
+}
+.nav-buttons { text-align: center; margin-top: 15px; }
+.nav-buttons button {
+  background: #262626;
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  margin: 0 5px;
+  cursor: pointer;
+  border-radius: 10px;
+}
+.nav-buttons button:hover { background: #333; }
+</style>
+</head>
+<body class="menu-view">
+<div class="layer-2">
+  <div class="header">
+    <div class="main-title">AT A GLANCE</div>
+    <div class="subtitle">Language Generator</div>
+    <div class="creator" id="creatorName">Majid Nashtai</div>
+    <div class="test-number" id="testNumber"></div>
+  </div>
+  <div class="menu" id="menu"></div>
+  <div class="exercise-area" id="exerciseArea"></div>
+  <button class="submit-btn" id="submitBtn" style="display:none;">SUBMIT</button>
+  <div class="score" id="score"></div>
+  <div class="nav-buttons">
+    <button id="menuBtn">MENU</button>
+    <button id="repeatBtn" onclick="repeatTest()">REPEAT</button>
+    <button id="nextBtn" onclick="nextTest()">NEXT</button>
+  </div>
+</div>
+<script>
+const testGroups = [
+  { title:"Mixed Advanced Practice – Group 1", questions:[
+  {q:"The lecture was so _____ that most students lost interest quickly.", opts:["dull","tedious","boring","monotonous"], ans:0},
+  {q:"She accepted the job offer without _____ hesitation.", opts:["any","much","some","little"], ans:0},
+  {q:"The manager was very _____ to his staff’s concerns.", opts:["receptive","perceptive","responsive","sensitive"], ans:0},
+  {q:"The client made some _____ remarks about the project.", opts:["critical","crucial","critic","criticised"], ans:0},
+  {q:"Her style is quite _____ compared to her colleagues.", opts:["distinct","different","distinguished","distinctive"], ans:0},
+  {q:"The results showed a _____ improvement in performance.", opts:["marked","noticeable","obvious","clear"], ans:0},
+  {q:"They were _____ to finish the work by Friday.", opts:["eager","keen","willing","ready"], ans:0},
+  {q:"Despite the problems, the plan remains _____.", opts:["viable","vivid","vital","valid"], ans:0},
+  {q:"The witness gave a _____ account of the incident.", opts:["detailed","detailing","detained","distinct"], ans:0},
+  {q:"Our company is _____ to change in the near future.", opts:["likely","liable","possible","apt"], ans:0},
+  {q:"He made a _____ contribution to the debate.", opts:["valuable","valid","valued","valuing"], ans:0},
+  {q:"Their idea is not economically _____.", opts:["feasible","possible","practical","probable"], ans:0},
+  {q:"The museum houses an _____ collection of art.", opts:["extensive","extended","expansive","expanded"], ans:0},
+  {q:"This problem is _____ to everyone in the community.", opts:["relevant","relative","related","relating"], ans:0},
+  {q:"The policy was criticised for being socially _____.", opts:["unjust","unjustice","unjustified","justice"], ans:0},
+
+  // Grammar / Other (Q16–25)
+  {q:"If I _____ enough money, I would travel the world.", opts:["had","have","had had","will have"], ans:0},
+  {q:"She denied _____ to the meeting.", opts:["going","go","to go","gone"], ans:0},
+  {q:"No sooner _____ the light turned green than they drove off.", opts:["had","was","has","did"], ans:0},
+  {q:"We had to call _____ the trip because of bad weather.", opts:["off","out","up","away"], ans:0},
+  {q:"He insisted _____ paying for the damage.", opts:["on","in","to","for"], ans:0},
+  {q:"By next week, we _____ the project.", opts:["will have finished","finish","finished","finishing"], ans:0},
+  {q:"I wish I _____ more time to relax.", opts:["had","have","will have","am having"], ans:0},
+  {q:"She’s capable _____ solving complex problems.", opts:["of","to","in","at"], ans:0},
+  {q:"Hardly a day goes by _____ I don’t think about the trip.", opts:["when","where","that","which"], ans:0},
+  {q:"The teacher told us that the exam _____ postponed.", opts:["was","is","be","will be"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 2", questions:[
+  {q:"I’m not really accustomed _____ speaking in front of large audiences.", opts:["to","with","at","for"], ans:0},
+  {q:"If he had taken my advice, he _____ in this difficult situation now.", opts:["wouldn't be","wouldn't have been","won't be","isn't"], ans:0},
+  {q:"She has a reputation _____ being extremely reliable.", opts:["for","of","about","to"], ans:0},
+  {q:"Much as I respect him, I can’t _____ his latest proposal.", opts:["endorse","enforce","engage","enact"], ans:0},
+  {q:"We arrived late, _____ the train had already left.", opts:["so","but","and","because"], ans:0},
+  {q:"It’s high time you _____ a decision about your future.", opts:["made","make","will make","would make"], ans:0},
+  {q:"The city council is considering new measures, which are expected to be _____ next year.", opts:["implemented","implanted","implicated","imparted"], ans:0},
+  {q:"She denied _____ the confidential report to the press.", opts:["leaking","to leak","of leaking","having leak"], ans:0},
+  {q:"Only after the meeting _____ that the plan had been cancelled.", opts:["did we learn","we learned","had we learnt","we had learn"], ans:0},
+  {q:"Her sudden resignation took everyone _____.", opts:["by surprise","in surprise","surprised","with surprise"], ans:0},
+  {q:"We had to postpone the picnic _____ the heavy rain.", opts:["due to","because","although","despite"], ans:0},
+  {q:"Had it not been for her prompt action, the damage _____ much worse.", opts:["would have been","was","will be","is"], ans:0},
+  {q:"By the time the exam starts, you _____ all the necessary revision.", opts:["will have done","will do","have done","had done"], ans:0},
+  {q:"He accused me _____ breaking the agreement.", opts:["of","for","about","on"], ans:0},
+  {q:"The book is said _____ into several languages already.", opts:["to have been translated","to translate","to be translated","being translated"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"No sooner had I sat down to relax _____ the phone rang.", opts:["than","when","but","and"], ans:0},
+  {q:"She speaks Spanish fluently, but her Italian is still a bit _____.", opts:["rusty","blunt","dim","weak"], ans:0},
+  {q:"His performance fell short of our expectations, _____ the effort he had put in.", opts:["despite","because","in case","owing to"], ans:0},
+  {q:"The manager suggested that the report _____ to the board next week.", opts:["be presented","is presented","was presented","should present"], ans:0},
+  {q:"Hardly _____ left the house when it started pouring with rain.", opts:["had I","I had","have I","I have"], ans:0},
+  {q:"They seem determined to go ahead with the plan, come _____.", opts:["what may","whatever","what will","what might"], ans:0},
+  {q:"She’s not used to getting up so early, so she finds it hard to _____ with the new routine.", opts:["cope","face","deal","manage"], ans:0},
+  {q:"We should make allowances _____ people who speak English as a second language.", opts:["for","to","with","of"], ans:0},
+  {q:"He refused to admit that he was wrong, much to my _____.", opts:["annoyance","annoying","annoyed","annoy"], ans:0},
+  {q:"The ceremony, which was _____ live on television, attracted millions of viewers.", opts:["broadcast","broadcaster","broadcasted","broadcasting"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 3", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"The two companies are _____ in scope, but differ in execution.", opts:["similar","alike","identical","equal"], ans:0},
+  {q:"The painting was an _____ copy of the original, fooling even the experts.", opts:["exact","precise","accurate","correct"], ans:0},
+  {q:"Her version of the story was completely _____.", opts:["fabricated","manufactured","constructed","falsified"], ans:0},
+  {q:"The proposal was met with _____ opposition from the committee.", opts:["vehement","vivid","vigorous","venomous"], ans:0},
+  {q:"He gave a _____ account of the events, leaving out nothing important.", opts:["comprehensive","comprehensible","compassionate","compatible"], ans:0},
+  {q:"The minister’s comments were seen as a _____ attack on the opposition party.", opts:["blatant","flagrant","overt","covert"], ans:0},
+  {q:"There is a _____ difference between the two legal systems.", opts:["subtle","subdued","slight","slender"], ans:0},
+  {q:"The movie was full of _____ moments that kept the audience engaged.", opts:["gripping","tight","clutching","catching"], ans:0},
+  {q:"This ancient manuscript is in _____ condition despite its age.", opts:["pristine","primary","prime","precious"], ans:0},
+  {q:"They were caught in a _____ storm while sailing.", opts:["fierce","ferocious","severe","violent"], ans:0},
+  {q:"The book offers a _____ look at the life of the poet.", opts:["penetrating","piercing","perforating","probing"], ans:0},
+  {q:"He has an _____ knowledge of classical music.", opts:["encyclopedic","epic","endless","exhaustive"], ans:0},
+  {q:"The judge’s decision set an important legal _____.", opts:["precedent","precedence","predecessor","precursor"], ans:0},
+  {q:"It was rather _____ of you to volunteer without being asked.", opts:["commendable","compatible","commanding","commendatory"], ans:0},
+  {q:"The results were _____ to what we had anticipated.", opts:["analogous","aligned","alike","alternative"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If I _____ about the traffic, I would have left earlier.", opts:["had known","knew","know","was knowing"], ans:0},
+  {q:"By the time she arrives, we _____ dinner.", opts:["will have finished","finish","will finish","have finished"], ans:0},
+  {q:"His speech was interrupted several times _____ loud applause.", opts:["by","with","from","over"], ans:0},
+  {q:"I regret not _____ harder when I had the chance.", opts:["studying","to study","study","have studied"], ans:0},
+  {q:"Only after the meeting _____ about the budget cuts.", opts:["did we learn","we learned","we had learn","had we learn"], ans:0},
+  {q:"She really takes _____ her mother in both looks and personality.", opts:["after","over","up","on"], ans:0},
+  {q:"We should make allowances _____ his lack of experience.", opts:["for","to","of","with"], ans:0},
+  {q:"Hardly _____ the announcement made when protests began.", opts:["was","had","have","being"], ans:1},
+  {q:"Despite her illness, she managed to attend the conference, which was quite _____.", opts:["admirable","admiring","admired","admiringly"], ans:0},
+  {q:"His work is said _____ an influence on many modern artists.", opts:["to have had","to have","to had","having had"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 4", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"The scientist’s theory was later proven to be _____ by new evidence.", opts:["invalid","invaluable","invisible","invariable"], ans:0},
+  {q:"She gave a _____ smile when she heard the good news.", opts:["genuine","generous","genial","general"], ans:0},
+  {q:"The discussion soon turned into a heated _____.", opts:["debate","argument","dispute","row"], ans:0},
+  {q:"Their home is filled with _____ furniture from the 18th century.", opts:["antique","ancient","archaic","old"], ans:0},
+  {q:"The story was so _____ that even the editor doubted its truth.", opts:["implausible","impossible","incredible","unbelievable"], ans:0},
+  {q:"He was found guilty of financial _____.", opts:["fraud","fault","flaw","falsehood"], ans:0},
+  {q:"This dress is made from a very _____ fabric that requires careful handling.", opts:["delicate","fragile","weak","fine"], ans:0},
+  {q:"The boss’s comments were meant to be _____, not critical.", opts:["constructive","instructive","productive","positive"], ans:0},
+  {q:"Her speech was both _____ and inspiring.", opts:["eloquent","elegant","elaborate","elevated"], ans:0},
+  {q:"The results of the survey were not _____ and could not be used.", opts:["conclusive","concluding","concordant","confident"], ans:0},
+  {q:"The soldiers showed _____ courage during the battle.", opts:["undaunted","undone","untamed","unfazed"], ans:0},
+  {q:"The city is famous for its _____ nightlife.", opts:["vibrant","vivid","vigorous","vicious"], ans:0},
+  {q:"He offered a _____ apology for his earlier remarks.", opts:["profuse","profound","proper","propitious"], ans:0},
+  {q:"It’s important to stay _____ to new ideas in our industry.", opts:["receptive","perceptive","susceptible","acceptive"], ans:0},
+  {q:"The workers were promised _____ compensation for their extra hours.", opts:["adequate","equal","sufficient","fair"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If she had studied harder, she _____ the exam easily.", opts:["would have passed","will pass","passed","would pass"], ans:0},
+  {q:"The committee insisted that the decision _____ reconsidered.", opts:["be","is","was","being"], ans:0},
+  {q:"No sooner _____ the announcement made than people started reacting angrily.", opts:["was","had","be","being"], ans:1},
+  {q:"She denied _____ the signature on the document.", opts:["forging","forge","to forge","have forged"], ans:0},
+  {q:"You must take your umbrella in case it _____.", opts:["rains","rain","will rain","rainy"], ans:0},
+  {q:"We ran out of petrol halfway and had to set _____ on foot.", opts:["off","out","up","away"], ans:0},
+  {q:"Despite being exhausted, he managed to finish the task, much to his _____.", opts:["relief","relieve","relieving","relieved"], ans:0},
+  {q:"The suspect was reported _____ in the vicinity of the crime scene.", opts:["to have been seen","to see","to have seen","to be seeing"], ans:0},
+  {q:"I’d rather you _____ the decision until tomorrow.", opts:["postponed","postpone","will postpone","had postponed"], ans:0},
+  {q:"The project was completed ahead of schedule, _____ the unforeseen delays.", opts:["despite","although","because","due to"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 5", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"The speech was so _____ that the audience was moved to tears.", opts:["poignant","pointed","poised","poisoned"], ans:0},
+  {q:"His account of the incident was highly _____ and inconsistent.", opts:["dubious","doubtful","doubting","dormant"], ans:0},
+  {q:"She gave him a _____ look, indicating her approval.", opts:["favourable","favourite","famed","famedly"], ans:0},
+  {q:"The two brothers are almost _____ in appearance.", opts:["identical","alike","equal","uniform"], ans:0},
+  {q:"The policy change will have a _____ impact on small businesses.", opts:["detrimental","determined","deterred","derivative"], ans:0},
+  {q:"The manager’s decision was both _____ and effective.", opts:["pragmatic","programmed","practicality","practice"], ans:0},
+  {q:"This medication is not _____ for children under six.", opts:["suitable","susceptible","sustainable","suspicious"], ans:0},
+  {q:"The detective gave a _____ description of the suspect.", opts:["vivid","vital","visual","vile"], ans:0},
+  {q:"Her performance in the interview was _____ less confident than expected.", opts:["considerably","considerately","considered","considering"], ans:0},
+  {q:"The novelist is known for her _____ use of language.", opts:["meticulous","metaphoric","methodical","moderate"], ans:0},
+  {q:"They managed to reach an agreement after _____ discussion.", opts:["prolonged","projected","progressive","promoted"], ans:0},
+  {q:"We are seeking a candidate with a _____ background in finance.", opts:["solid","sole","soundly","soldered"], ans:0},
+  {q:"The findings are _____ to those from previous studies.", opts:["analogous","anecdotal","announced","anomalous"], ans:0},
+  {q:"Her tone was slightly _____, suggesting irritation.", opts:["sarcastic","sardonic","satirical","sarcastically"], ans:0},
+  {q:"The athlete showed _____ determination to win.", opts:["unwavering","unwieldy","unwanted","unworthy"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If you had told me earlier, I _____ been able to help.", opts:["would have","will have","had","have"], ans:0},
+  {q:"He was accused _____ leaking confidential information.", opts:["of","for","about","to"], ans:0},
+  {q:"The results, which were _____ yesterday, surprised everyone.", opts:["announced","announce","announcing","announcement"], ans:0},
+  {q:"We’d better set off now in case we _____ in traffic.", opts:["get stuck","got stuck","will get stuck","gets stuck"], ans:0},
+  {q:"No sooner _____ the storm started than the power went out.", opts:["had","has","did","was"], ans:0},
+  {q:"She admitted _____ the keys in her car.", opts:["locking","lock","to lock","have locked"], ans:0},
+  {q:"Despite the difficulties, they decided to press _____ with the plan.", opts:["ahead","forward","up","out"], ans:0},
+  {q:"I wish you _____ making so much noise when I’m studying.", opts:["would stop","stop","will stop","can stop"], ans:0},
+  {q:"Hardly a day goes by _____ I don’t think about that trip.", opts:["when","that","where","which"], ans:0},
+  {q:"The minister was reported _____ a solution had been found.", opts:["to have said","to say","saying","he said"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 6", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"The committee reached an _____ decision after hours of debate.", opts:["unanimous","uniform","unitary","unique"], ans:0},
+  {q:"Her explanation was perfectly _____ and easy to follow.", opts:["coherent","cohesive","coinciding","concurrent"], ans:0},
+  {q:"The scientist’s work has had a _____ impact on modern medicine.", opts:["profound","profuse","prophetic","prominent"], ans:0},
+  {q:"He’s one of the most _____ figures in the industry.", opts:["influential","affecting","effective","influent"], ans:0},
+  {q:"The two reports are broadly _____ but differ in minor details.", opts:["similar","alike","identical","equal"], ans:0},
+  {q:"They issued a _____ warning about the dangers of vaping.", opts:["stern","steep","stiff","stark"], ans:0},
+  {q:"Her tone was polite but slightly _____.", opts:["condescending","condensing","conducting","concerning"], ans:0},
+  {q:"The lecture was so _____ that I almost fell asleep.", opts:["tedious","tentative","timid","tenuous"], ans:0},
+  {q:"The fire caused _____ damage to the old building.", opts:["irreparable","irreplaceable","irreversible","irrefutable"], ans:0},
+  {q:"The victim’s injuries were _____ but not life-threatening.", opts:["serious","severe","critical","grave"], ans:0},
+  {q:"She has an _____ talent for solving complex problems.", opts:["exceptional","excessive","exclusive","expressive"], ans:0},
+  {q:"The author’s latest novel was met with _____ acclaim.", opts:["widespread","widely","wide","width"], ans:0},
+  {q:"The decision will have _____ consequences for the local economy.", opts:["far-reaching","long-reaching","deep-reaching","broad-reaching"], ans:0},
+  {q:"He refused the offer on moral _____ grounds.", opts:["ethical","ethnic","aesthetic","ethereal"], ans:0},
+  {q:"The weather forecast looks _____ for our beach trip tomorrow.", opts:["favourable","favourite","feasible","fortunate"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If the train had been on time, we _____ the opening ceremony.", opts:["would have seen","would see","will see","saw"], ans:0},
+  {q:"I’d rather you _____ your homework before playing games.", opts:["finished","finish","will finish","had finished"], ans:0},
+  {q:"Despite initial setbacks, the team pressed _____ and achieved their goals.", opts:["on","in","up","forth"], ans:0},
+  {q:"No sooner _____ the bell rung than the students rushed out.", opts:["had","has","did","was"], ans:0},
+  {q:"The suspect was alleged _____ the crime with two others.", opts:["to have committed","to commit","to have commit","to committing"], ans:0},
+  {q:"She insisted _____ paying for the meal.", opts:["on","in","to","at"], ans:0},
+  {q:"We must act quickly, _____ we risk losing our advantage.", opts:["or","and","for","but"], ans:0},
+  {q:"It’s high time we _____ serious action on climate change.", opts:["took","take","will take","had taken"], ans:0},
+  {q:"He apologised for not _____ my email sooner.", opts:["replying to","to reply to","replied to","reply"], ans:0},
+  {q:"The package is expected _____ tomorrow morning.", opts:["to arrive","arriving","arrive","to have arrived"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 7", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"The witness’s account was _____ and raised several doubts.", opts:["inconsistent","inconstant","unconstant","illogical"], ans:0},
+  {q:"The two fabrics look similar, but the texture is quite _____.", opts:["distinct","distinguished","distinctive","different"], ans:0},
+  {q:"Her remarks were _____ offensive, causing discomfort in the room.", opts:["mildly","slightly","moderately","minutely"], ans:0},
+  {q:"The region is known for its _____ climate.", opts:["temperate","temporary","tempered","temperamental"], ans:0},
+  {q:"His latest book is a _____ departure from his earlier work.", opts:["radical","rash","rigid","robust"], ans:0},
+  {q:"The new regulations will have a _____ effect on small companies.", opts:["profound","profuse","prolific","promising"], ans:0},
+  {q:"Their explanation was _____ and failed to address the real issue.", opts:["evasive","elusive","evading","avoiding"], ans:0},
+  {q:"Despite the hype, the performance was rather _____ and uninspired.", opts:["mediocre","medium","meagre","modest"], ans:0},
+  {q:"The judge’s decision was based on _____ evidence.", opts:["circumstantial","circumference","circuitous","circular"], ans:0},
+  {q:"He is held in high _____ by his colleagues.", opts:["regard","regards","regarding","regarded"], ans:0},
+  {q:"The company faced _____ criticism after the environmental scandal.", opts:["severe","serious","grave","critical"], ans:0},
+  {q:"Her tone became _____ when she addressed the losing team.", opts:["patronising","paternal","patriotic","passive"], ans:0},
+  {q:"The charity received an _____ donation from an anonymous benefactor.", opts:["enormous","immense","staggering","substantial"], ans:0},
+  {q:"His comments were _____ with those of the other experts.", opts:["consistent","consist","consistency","consistently"], ans:0},
+  {q:"The hero’s journey was filled with _____ obstacles.", opts:["formidable","formative","formal","forcible"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If I _____ to know about the meeting earlier, I could have attended.", opts:["had happened","happened","happen","have happened"], ans:0},
+  {q:"The new law is expected _____ into effect next month.", opts:["to come","coming","come","to coming"], ans:0},
+  {q:"No sooner _____ the speech finished than questions started coming in.", opts:["had","was","has","did"], ans:0},
+  {q:"She apologised for not _____ in touch sooner.", opts:["keeping","keep","to keep","have kept"], ans:0},
+  {q:"Despite his wealth, he lives quite _____.", opts:["modestly","moderately","humble","simply"], ans:0},
+  {q:"The project is unlikely to succeed, _____ the lack of funds.", opts:["given","although","despite of","in case"], ans:0},
+  {q:"I’d rather you _____ your report by Friday.", opts:["submitted","submit","will submit","had submitted"], ans:0},
+  {q:"He was believed _____ the missing documents.", opts:["to have stolen","to steal","stealing","have stolen"], ans:0},
+  {q:"She turned _____ the offer because it didn’t meet her expectations.", opts:["down","out","off","up"], ans:0},
+  {q:"We must make allowances _____ beginners in this workshop.", opts:["for","to","of","with"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 8", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"Her comments were meant to be _____, offering helpful advice.", opts:["constructive","instructive","productive","positive"], ans:0},
+  {q:"The two cities are _____ in size but very different in character.", opts:["comparable","compatible","comparative","competitive"], ans:0},
+  {q:"He was praised for his _____ commitment to the project.", opts:["steadfast","steady","stubborn","strict"], ans:0},
+  {q:"The charity relies heavily on _____ donations from the public.", opts:["voluntary","volunteer","voluminous","valid"], ans:0},
+  {q:"The use of drones has become _____ in modern warfare.", opts:["prevalent","prevailing","present","persistent"], ans:0},
+  {q:"The rescue operation was described as a _____ effort.", opts:["heroic","historic","historical","honourable"], ans:0},
+  {q:"Their demands were so _____ that negotiations collapsed.", opts:["unreasonable","unreal","unrealistic","unequal"], ans:0},
+  {q:"Her resignation came as a complete _____.", opts:["shock","surprise","astonishment","disbelief"], ans:0},
+  {q:"We need a _____ approach to solve this complex issue.", opts:["coordinated","coherent","combined","concerted"], ans:0},
+  {q:"The novel gives a _____ portrayal of life in rural Spain.", opts:["vivid","vital","visual","verbal"], ans:0},
+  {q:"He spoke with such _____ that everyone was persuaded.", opts:["conviction","confidence","certainty","credibility"], ans:0},
+  {q:"Their differences are purely _____.", opts:["superficial","surface","supplementary","secondary"], ans:0},
+  {q:"The manager’s decision was both fair and _____.", opts:["justifiable","justified","justice","juridical"], ans:0},
+  {q:"The witness gave a _____ account of the events.", opts:["detailed","detailing","detained","distinct"], ans:0},
+  {q:"A _____ number of people attended the online seminar.", opts:["substantial","substantive","subsidiary","sufficient"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If she _____ earlier, she wouldn’t be late now.", opts:["had left","left","leaves","was leaving"], ans:0},
+  {q:"No sooner _____ the news than reporters arrived.", opts:["had they heard","they had heard","did they heard","they hear"], ans:0},
+  {q:"He was accused _____ falsifying financial records.", opts:["of","for","about","to"], ans:0},
+  {q:"Despite the heavy rain, the match continued, much to everyone’s _____.", opts:["delight","delighted","delighting","delightful"], ans:0},
+  {q:"She seems _____ to cope with pressure.", opts:["able","capable","apt","fit"], ans:0},
+  {q:"I wish you _____ me before making that decision.", opts:["had consulted","consult","would consult","consulted"], ans:0},
+  {q:"The project is expected _____ within the next six months.", opts:["to be completed","completed","completing","complete"], ans:0},
+  {q:"They decided to call _____ the meeting due to unforeseen circumstances.", opts:["off","out","up","away"], ans:0},
+  {q:"Hardly a week goes by _____ I don’t think of our school days.", opts:["when","that","where","which"], ans:0},
+  {q:"He refused to comment, claiming he had nothing _____.", opts:["to hide","hide","hiding","to hiding"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 9", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"His explanation was so _____ that everyone understood immediately.", opts:["lucid","lurid","lofty","loyal"], ans:0},
+  {q:"The team won the match with a _____ margin.", opts:["narrow","slim","slight","small"], ans:0},
+  {q:"The two witnesses gave _____ accounts of the accident.", opts:["conflicting","contradictory","contrasting","different"], ans:0},
+  {q:"Her resignation letter was written in a _____ tone.", opts:["formal","formative","formidable","formulaic"], ans:0},
+  {q:"The committee found his behaviour completely _____.", opts:["unacceptable","unaccepted","inacceptable","inaccepted"], ans:0},
+  {q:"The findings were _____ with the results of previous research.", opts:["consistent","consistence","consist","consistently"], ans:0},
+  {q:"The orchestra delivered a _____ performance in front of a packed hall.", opts:["flawless","flawed","faultless","fearless"], ans:0},
+  {q:"She made a _____ attempt to finish the marathon despite her injury.", opts:["valiant","valid","vain","vivid"], ans:0},
+  {q:"The two species are very _____ in appearance but unrelated.", opts:["similar","alike","identical","equal"], ans:0},
+  {q:"The proposal was rejected on financial _____ grounds.", opts:["economic","economical","economy","economics"], ans:0},
+  {q:"He has been a _____ critic of government policy for years.", opts:["vocal","verbal","verbatim","vocational"], ans:0},
+  {q:"The instructions were too _____ to be of any real help.", opts:["vague","vaunted","vain","void"], ans:0},
+  {q:"The president’s visit was given _____ coverage in the media.", opts:["extensive","extended","expansive","expanded"], ans:0},
+  {q:"Her latest book is a _____ work of historical fiction.", opts:["seminal","senior","seminar","similar"], ans:0},
+  {q:"We need to adopt a more _____ approach to maximise results.", opts:["strategic","strategist","strategy","structural"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If I _____ you, I’d accept the offer immediately.", opts:["were","was","am","will be"], ans:0},
+  {q:"No sooner _____ the speech ended than the audience applauded.", opts:["had","was","has","did"], ans:0},
+  {q:"She apologised for not _____ in touch sooner.", opts:["getting","get","to get","have got"], ans:0},
+  {q:"The suspect was alleged _____ involvement in the scandal.", opts:["to have had","to have","having","had"], ans:0},
+  {q:"They decided to call _____ the trip due to bad weather.", opts:["off","out","up","away"], ans:0},
+  {q:"Despite several warnings, he persisted _____ ignoring the rules.", opts:["in","on","to","at"], ans:0},
+  {q:"By the end of next week, we _____ all the preparations.", opts:["will have finished","will finish","finish","have finished"], ans:0},
+  {q:"I wish you _____ so stubborn about changing your mind.", opts:["weren’t","aren’t","haven’t been","isn’t"], ans:0},
+  {q:"The proposal, which was _____ yesterday, sparked heated debate.", opts:["announced","announcement","announcing","announce"], ans:0},
+  {q:"Hardly a day goes by _____ I don’t think about that conversation.", opts:["when","that","where","which"], ans:0}
+]},
+{ title:"Mixed Advanced Practice – Group 10", questions:[
+  // ==== Q1–Q15: Similar / Confusing Words ====
+  {q:"The judge’s ruling was completely _____ with legal precedent.", opts:["consistent","consistence","consisting","consist"], ans:0},
+  {q:"Her remarks were meant to be _____, not to offend anyone.", opts:["tactful","tactical","tangible","tame"], ans:0},
+  {q:"The service at the hotel was absolutely _____.", opts:["impeccable","imperative","impartial","implied"], ans:0},
+  {q:"The two buildings are remarkably _____ in design.", opts:["similar","alike","identical","equal"], ans:0},
+  {q:"He made a _____ attempt to convince them, but they refused.", opts:["futile","fruitless","useless","vain"], ans:0},
+  {q:"We need to adopt an _____ approach to solve this issue.", opts:["innovative","initiative","inventive","inspired"], ans:0},
+  {q:"His decision was _____ as a sign of weakness.", opts:["perceived","proceeded","presumed","pretended"], ans:0},
+  {q:"The agreement is _____ to change if both parties consent.", opts:["subject","suspect","subdued","susceptible"], ans:0},
+  {q:"She is widely _____ for her achievements in science.", opts:["acclaimed","accommodated","accounted","acquired"], ans:0},
+  {q:"The two countries have a _____ understanding of the treaty.", opts:["mutual","joint","common","shared"], ans:0},
+  {q:"His behaviour was highly _____ given the circumstances.", opts:["inappropriate","inapplicable","ineffective","inaccurate"], ans:0},
+  {q:"The threat of war remained _____ in the region.", opts:["imminent","eminent","immanent","immunised"], ans:0},
+  {q:"The dress code is _____, so smart casual is acceptable.", opts:["flexible","flexibly","fluent","fluid"], ans:0},
+  {q:"His criticism was meant to be _____ rather than destructive.", opts:["constructive","construed","constitutive","consequential"], ans:0},
+  {q:"She was praised for her _____ handling of the crisis.", opts:["adept","adapt","apt","adopt"], ans:0},
+
+  // ==== Q16–Q25: Mixed Advanced Grammar / Other Focus ====
+  {q:"If I _____ more time, I would take up a new hobby.", opts:["had","have","had had","will have"], ans:0},
+  {q:"No sooner _____ speaking than the audience erupted in applause.", opts:["had he finished","he had finished","did he finished","was he finished"], ans:0},
+  {q:"I regret not _____ the opportunity when it arose.", opts:["taking","to take","take","taken"], ans:0},
+  {q:"The manager demanded that the proposal _____ revised immediately.", opts:["be","is","was","being"], ans:0},
+  {q:"We had to call _____ the picnic because of the storm.", opts:["off","out","away","up"], ans:0},
+  {q:"By the time you arrive, we _____ dinner.", opts:["will have started","will start","start","started"], ans:0},
+  {q:"She insisted _____ paying for the hotel room.", opts:["on","to","in","at"], ans:0},
+  {q:"I wish I _____ more careful when I made that investment.", opts:["had been","was","were","have been"], ans:0},
+  {q:"The suspects are believed _____ abroad last night.", opts:["to have fled","to flee","to fled","fleeing"], ans:0},
+  {q:"Hardly a week goes by _____ I don’t hear from her.", opts:["when","that","where","which"], ans:0}
+]}
+];
+
+let currentTest = null;
+let selections = [];
+
+function initMenu(){
+  document.body.classList.remove('test-view');
+  document.body.classList.add('menu-view');
+  const menu = document.getElementById('menu');
+  menu.style.display='grid';
+  menu.innerHTML='';
+  document.getElementById('exerciseArea').innerHTML='';
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('score').style.display='none';
+  document.getElementById('menuBtn').style.display = 'none';
+  document.getElementById('repeatBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('creatorName').style.display = 'block';
+  document.getElementById('testNumber').style.display = 'none';
+  testGroups.forEach((g,i)=>{
+    const btn = document.createElement('button');
+    btn.textContent = `TEST ${i+1}`;
+    btn.onclick = ()=>showTest(i);
+    menu.appendChild(btn);
+  });
+}
+
+function showTest(idx){
+  document.body.classList.remove('menu-view');
+  document.body.classList.add('test-view');
+  currentTest = idx;
+  selections = [];
+  const area = document.getElementById('exerciseArea');
+  area.innerHTML='';
+  document.getElementById('menu').style.display='none';
+  document.getElementById('menuBtn').style.display = 'inline-block';
+  document.getElementById('repeatBtn').style.display = 'inline-block';
+  document.getElementById('nextBtn').style.display = 'inline-block';
+  document.getElementById('creatorName').style.display = 'none';
+  document.getElementById('testNumber').textContent = `TEST ${idx+1}`;
+  document.getElementById('testNumber').style.display = 'block';
+
+  testGroups[idx].questions.forEach((q,qi)=>{
+    const qBlock = document.createElement('div');
+    qBlock.className = 'question-block';
+    const qText = document.createElement('div');
+    qText.className = 'question-text';
+    qText.textContent = `${qi+1}. ${q.q}`;
+    qBlock.appendChild(qText);
+
+    const optsDiv = document.createElement('div');
+    optsDiv.className = 'options';
+    q.opts.forEach((opt,oi)=>{
+      const ob = document.createElement('button');
+      ob.className = 'option';
+      ob.textContent = opt;
+      ob.onclick=()=>selectOption(qi,oi,ob);
+      optsDiv.appendChild(ob);
+    });
+    qBlock.appendChild(optsDiv);
+    area.appendChild(qBlock);
+  });
+
+  document.getElementById('submitBtn').style.display='block';
+  document.getElementById('score').style.display='none';
+}
+
+function selectOption(qi,oi,btn){
+  selections[qi]=oi;
+  const btns = btn.parentNode.querySelectorAll('.option');
+  btns.forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function submitAnswers(){
+  let correct=0;
+  const qBlocks = document.getElementsByClassName('question-block');
+  testGroups[currentTest].questions.forEach((q,qi)=>{
+    const btns = qBlocks[qi].querySelectorAll('.option');
+    btns.forEach((b,bi)=>{
+      if(bi === q.ans) b.classList.add('correct');
+      if(selections[qi] === bi && bi !== q.ans) b.classList.add('wrong');
+      b.disabled = true;
+    });
+    if(selections[qi] === q.ans) correct++;
+  });
+  document.getElementById('score').textContent =
+    `Score: ${correct}/${testGroups[currentTest].questions.length} (${Math.round(correct/testGroups[currentTest].questions.length*100)}%)`;
+  document.getElementById('score').style.display='block';
+}
+
+function repeatTest(){ showTest(currentTest); }
+function nextTest(){ showTest((currentTest+1)%testGroups.length); }
+
+document.getElementById('submitBtn').onclick=submitAnswers;
+document.getElementById('menuBtn').onclick=initMenu;
+
+initMenu();
+</script>
+</body>
+</html>
