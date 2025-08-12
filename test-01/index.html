@@ -37,6 +37,25 @@
             font-size: 1.1em;
         }
 
+        /* Back button style */
+        .back-btn {
+            background: linear-gradient(135deg, #6c5ce7, #00b894);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .back-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -332,6 +351,9 @@
 </head>
 <body>
     <header>
+        <button class="back-btn" onclick="window.location.href='../index.html'">
+            ⬅ Back to Main Menu
+        </button>
         <h1>C1 Advanced Practice Test</h1>
         <p>Cambridge English: Advanced (CAE) - Use of English Practice</p>
     </header>
@@ -840,79 +862,4 @@
 
         function displayResults(score, total, results) {
             document.getElementById('testContainer').classList.add('hidden');
-            document.getElementById('resultsContainer').classList.remove('hidden');
-            
-            const percentage = Math.round((score / total) * 100);
-            document.getElementById('finalScore').textContent = `${score}/${total}`;
-            document.getElementById('scorePercentage').textContent = `${percentage}%`;
-            
-            // Score message
-            let message = '';
-            if (percentage >= 90) message = 'Excellent work! Outstanding performance!';
-            else if (percentage >= 80) message = 'Very good! Well done!';
-            else if (percentage >= 70) message = 'Good job! Keep practicing!';
-            else if (percentage >= 60) message = 'Not bad, but there\'s room for improvement.';
-            else message = 'Keep studying and try again!';
-            
-            document.getElementById('scoreMessage').textContent = message;
-            
-            // Detailed results
-            const detailsContainer = document.getElementById('detailedResults');
-            let detailsHTML = '<h3>Detailed Results:</h3>';
-            
-            results.forEach(result => {
-                const statusIcon = result.isCorrect ? '✅' : '❌';
-                const statusClass = result.isCorrect ? 'correct' : 'incorrect';
-                
-                detailsHTML += `
-                    <div class="result-item ${statusClass}">
-                        <strong>Question ${result.questionNumber}:</strong> ${statusIcon}<br>
-                        <strong>Your answer:</strong> ${result.userAnswer || '(no answer)'}<br>
-                        <strong>Correct answer:</strong> ${result.question.answer}
-                        ${result.question.explanation ? `<div class="explanation"><strong>Explanation:</strong> ${result.question.explanation}</div>` : ''}
-                    </div>
-                `;
-            });
-            
-            detailsContainer.innerHTML = detailsHTML;
-        }
-
-        function normalizeAnswer(answer) {
-            return answer.toLowerCase().trim().replace(/\s+/g, ' ');
-        }
-
-        function returnToMenu() {
-            document.getElementById('testContainer').classList.add('hidden');
-            document.getElementById('resultsContainer').classList.add('hidden');
-            document.getElementById('mainMenu').classList.remove('hidden');
-        }
-
-        function generateNewTest() {
-            alert('🚧 Feature Coming Soon!\n\nThis would connect to a database of additional test sets. For now, you can:\n• Try different sections individually\n• Take the complete test again\n• Contact your teacher for more practice materials');
-        }
-
-        function reviewAnswers() {
-            // Go back to test with answers and explanations shown
-            showingAnswers = true;
-            showingExplanations = true;
-            currentQuestionIndex = 0;
-            
-            document.getElementById('resultsContainer').classList.add('hidden');
-            document.getElementById('testContainer').classList.remove('hidden');
-            
-            document.getElementById('showAnswersBtn').textContent = 'Hide Answers';
-            document.getElementById('showExplanationsBtn').textContent = 'Hide Explanations';
-            
-            renderQuestion();
-            updateProgress();
-            updateNavButtons();
-        }
-
-        // Initialize the app
-        window.addEventListener('load', () => {
-            // App is ready
-            console.log('C1 Practice Test loaded successfully!');
-        });
-    </script>
-</body>
-</html>
+            document.getElementById('resultsContainer').classList.remove
