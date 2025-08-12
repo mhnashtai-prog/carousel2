@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>C1 Advanced Practice Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .main-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-color: #667eea;
+        }
+
+        .menu-card h3 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .menu-card p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .menu-card .question-count {
+            background: #f0f4ff;
+            color: #667eea;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .test-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .question {
+            background: #f8f9ff;
+            border: 2px solid #e8ecff;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+        .question.current {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .options {
+            margin: 15px 0;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            scale: 1.2;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #6f42c1);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .results-container {
+            text-align: center;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .score-display h2 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .score-display p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .results-details {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .result-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid transparent;
+        }
+
+        .result-item.correct {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .result-item.incorrect {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .explanation {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>C1 Advanced Practice Test</h1>
+        <p>Cambridge English: Advanced (CAE) - Use of English Practice</p>
+    </header>
+
+    <div class="container">
+        <!-- Main Menu -->
+        <div id="mainMenu" class="main-menu">
+            <div class="menu-card" onclick="startSection('multipleChoice')">
+                <h3>📝 Multiple Choice Cloze</h3>
+                <p>Choose the best word or phrase to complete each sentence.</p>
+                <span class="question-count">12 questions</span>
+            </div>
+            
+            <div class="menu-card" onclick="startSection('openCloze')">
+                <h3>📋 Open Cloze</h3>
+                <p>Fill in the missing words in the text passages.</p>
+                <span class="question-count">8 questions</span>
+            </div>
+            
+            <div class="menu-card" onclick="startSection('wordFormation')">
+                <h3>🔤 Word Formation</h3>
+                <p>Change the given words to fit grammatically in the sentences.</p>
+                <span class="question-count">8 questions</span>
+            </div>
+            
+            <div class="menu-card" onclick="startSection('sentenceTransformation')">
+                <h3>🔄 Key Word Transformations</h3>
+                <p>Complete the second sentence using the key word provided.</p>
+                <span class="question-count">6 questions</span>
+            </div>
+
+            <div class="menu-card" onclick="startFullTest()">
+                <h3>🎯 Complete Practice Test</h3>
+                <p>Take all sections together as a full Cambridge C1 practice test.</p>
+                <span class="question-count">34 questions total</span>
+            </div>
+        </div>
+
+        <!-- Test Container -->
+        <div id="testContainer" class="test-container hidden">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+            
+            <h2 class="section-title" id="sectionTitle"></h2>
+            
+            <div id="questionsContainer"></div>
+            
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">← Previous</button>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-info" id="showAnswersBtn" onclick="showAnswers()">Show Answers</button>
+                    <button class="btn btn-info" id="showExplanationsBtn" onclick="showExplanations()">Explanations</button>
+                </div>
+                
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="resultsContainer" class="test-container hidden">
+            <div class="results-container">
+                <div class="score-display">
+                    <h2 id="finalScore">0/0</h2>
+                    <p id="scorePercentage">0%</p>
+                    <p id="scoreMessage">Well done!</p>
+                </div>
+                
+                <div class="results-details" id="detailedResults"></div>
+                
+                <div class="nav-buttons">
+                    <button class="btn btn-secondary" onclick="returnToMenu()">← Main Menu</button>
+                    <button class="btn btn-success" onclick="generateNewTest()">Try Another Test</button>
+                    <button class="btn btn-info" onclick="reviewAnswers()">Review Answers</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test data
+        const testData = {
+            multipleChoice: [
+                {
+                    question: "The report calls for a radical ______ in the way the company operates.",
+                    options: ["shift", "alteration", "exchange", "transfer"],
+                    answer: "shift",
+                    explanation: "'Shift' is the correct choice as it means a significant change in approach or direction."
+                },
+                {
+                    question: "Her sudden resignation took everyone by ______.",
+                    options: ["wonder", "shock", "surprise", "doubt"],
+                    answer: "surprise",
+                    explanation: "The idiom is 'take someone by surprise', meaning to happen unexpectedly."
+                },
+                {
+                    question: "The committee has been asked to ______ a proposal for the new sports centre.",
+                    options: ["compose", "draw up", "sketch", "design"],
+                    answer: "draw up",
+                    explanation: "'Draw up' is the correct phrasal verb meaning to prepare or create a formal document."
+                },
+                {
+                    question: "It's high time you ______ your own decisions instead of always asking me.",
+                    options: ["make", "made", "had made", "would make"],
+                    answer: "made",
+                    explanation: "After 'It's high time', we use the past subjunctive form to express that something should have happened already."
+                },
+                {
+                    question: "The new manager was keen to put her own ______ on the project.",
+                    options: ["mark", "stamp", "signature", "label"],
+                    answer: "stamp",
+                    explanation: "'Put one's stamp on something' means to make something reflect one's own style or influence."
+                },
+                {
+                    question: "The minister's statement gave rise ______ widespread criticism.",
+                    options: ["for", "to", "of", "with"],
+                    answer: "to",
+                    explanation: "The correct preposition with 'give rise to' is 'to', meaning to cause or result in."
+                },
+                {
+                    question: "There's no point ______ to persuade him — his mind is made up.",
+                    options: ["trying", "to try", "in trying", "having tried"],
+                    answer: "in trying",
+                    explanation: "The correct structure is 'no point in + -ing form'."
+                },
+                {
+                    question: "By the time you arrive, the meeting ______.",
+                    options: ["will have started", "started", "has started", "would start"],
+                    answer: "will have started",
+                    explanation: "Future perfect tense is used to describe an action that will be completed before a future time."
+                },
+                {
+                    question: "The success of the campaign is largely ______ to the dedication of the volunteers.",
+                    options: ["because", "due", "owing", "down"],
+                    answer: "due",
+                    explanation: "'Due to' means 'because of' or 'as a result of'."
+                },
+                {
+                    question: "She would never have agreed to the plan if she ______ the risks.",
+                    options: ["knew", "had known", "would know", "knows"],
+                    answer: "had known",
+                    explanation: "This is a third conditional sentence requiring 'had + past participle' in the if-clause."
+                },
+                {
+                    question: "We must take measures to ensure the safety of the public, ______ cost.",
+                    options: ["whatever", "whichever", "however", "no matter"],
+                    answer: "whatever",
+                    explanation: "'Whatever the cost' means regardless of how much it costs."
+                },
+                {
+                    question: "He was so tired that he could ______ keep his eyes open.",
+                    options: ["hardly", "barely", "scarcely", "rarely"],
+                    answer: "hardly",
+                    explanation: "'Hardly' with 'could' emphasizes the extreme difficulty in staying awake."
+                }
+            ],
+            
+            openCloze: [
+                {
+                    sentence: "Had I ______ about the traffic, I would have left earlier.",
+                    answer: "known",
+                    explanation: "Third conditional with inversion: 'Had I known' = 'If I had known'."
+                },
+                {
+                    sentence: "It's high time you ______ more responsibility at work.",
+                    answer: "took",
+                    explanation: "After 'It's high time', we use the past subjunctive to express what should happen."
+                },
+                {
+                    sentence: "No sooner ______ we sat down than the fire alarm went off.",
+                    answer: "had",
+                    explanation: "'No sooner had we...' is an inversion structure meaning 'as soon as we had...'."
+                },
+                {
+                    sentence: "Despite ______ exhausted, she continued working late into the night.",
+                    answer: "being",
+                    explanation: "After 'despite', we need a gerund form: 'despite being exhausted'."
+                },
+                {
+                    sentence: "She has lived here ______ 2015.",
+                    answer: "since",
+                    explanation: "'Since' is used with a specific point in time to show duration from then until now."
+                },
+                {
+                    sentence: "We're hoping to finish the project by Friday, ______ all goes well.",
+                    answer: "provided",
+                    explanation: "'Provided' means 'if' or 'as long as' - expressing a condition."
+                },
+                {
+                    sentence: "The suspect denied ______ at the scene of the crime.",
+                    answer: "being",
+                    explanation: "'Deny' is followed by a gerund: 'denied being at the scene'."
+                },
+                {
+                    sentence: "Only after the train had left ______ that she was on the wrong platform.",
+                    answer: "did she realise",
+                    explanation: "After 'Only after', we use inversion: auxiliary verb + subject + main verb."
+                }
+            ],
+            
+            wordFormation: [
+                {
+                    sentence: "His constant ______ (COMPLAIN) about the noise is getting on my nerves.",
+                    answer: "complaining",
+                    explanation: "The gerund 'complaining' functions as a noun here."
+                },
+                {
+                    sentence: "The proposal was rejected due to its ______ (FEASIBLE).",
+                    answer: "infeasibility",
+                    explanation: "We need the negative noun form: 'infeasibility' (the quality of not being possible)."
+                },
+                {
+                    sentence: "We need a more ______ (CREATE) approach to solve this problem.",
+                    answer: "creative",
+                    explanation: "The adjective 'creative' is needed to describe the approach."
+                },
+                {
+                    sentence: "The Prime Minister's speech was widely regarded as ______ (INSPIRE).",
+                    answer: "inspiring",
+                    explanation: "The adjective 'inspiring' describes something that motivates or encourages."
+                },
+                {
+                    sentence: "There's little point in making further ______ (INVESTIGATE) into the matter.",
+                    answer: "investigations",
+                    explanation: "The plural noun 'investigations' is needed after 'making'."
+                },
+                {
+                    sentence: "She made a very ______ (IMPRESS) entrance at the gala dinner.",
+                    answer: "impressive",
+                    explanation: "The adjective 'impressive' describes something that creates a strong effect."
+                },
+                {
+                    sentence: "He's shown remarkable ______ (DETERMINE) in completing the course.",
+                    answer: "determination",
+                    explanation: "The noun 'determination' means the quality of being resolved to do something."
+                },
+                {
+                    sentence: "The rules are designed to ensure the ______ (SAFE) of all participants.",
+                    answer: "safety",
+                    explanation: "The noun 'safety' is needed after the definite article 'the'."
+                }
+            ],
+            
+            sentenceTransformation: [
+                {
+                    question: "I regret not speaking up at the meeting. → I wish ______ at the meeting.",
+                    answer: "I had spoken up",
+                    explanation: "We use 'wish + past perfect' to express regret about past actions."
+                },
+                {
+                    question: "It wasn't necessary for her to attend the interview, but she did. → She needn't ______ the interview, but she did.",
+                    answer: "have attended",
+                    explanation: "'Needn't have + past participle' expresses unnecessary past actions that were completed."
+                },
+                {
+                    question: "We last went skiing three years ago. → We haven't ______ three years.",
+                    answer: "been skiing for",
+                    explanation: "Present perfect with 'for' + time period shows duration from past to present."
+                },
+                {
+                    question: "I'm sure he didn't mean to offend you. → He can't ______ to offend you.",
+                    answer: "have meant",
+                    explanation: "'Can't have + past participle' expresses certainty that something didn't happen in the past."
+                },
+                {
+                    question: "I'm sure this bag belongs to Jane. → This bag must ______ Jane.",
+                    answer: "belong to",
+                    explanation: "'Must + infinitive' expresses logical deduction about present situations."
+                },
+                {
+                    question: "The company started using the new system in March. → The new system ______ since March.",
+                    answer: "has been in use",
+                    explanation: "Present perfect passive form showing duration from past to present."
+                }
+            ]
+        };
+
+        // Global variables
+        let currentSection = '';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let showingAnswers = false;
+        let showingExplanations = false;
+
+        function startSection(sectionType) {
+            currentSection = sectionType;
+            currentQuestions = testData[sectionType].map((q, i) => ({...q, originalIndex: i}));
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            showingAnswers = false;
+            showingExplanations = false;
+            
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('testContainer').classList.remove('hidden');
+            document.getElementById('resultsContainer').classList.add('hidden');
+            
+            const sectionTitles = {
+                multipleChoice: 'Multiple Choice Cloze',
+                openCloze: 'Open Cloze',
+                wordFormation: 'Word Formation',
+                sentenceTransformation: 'Key Word Transformations'
+            };
+            
+            document.getElementById('sectionTitle').textContent = sectionTitles[sectionType];
+            
+            renderQuestion();
+            updateProgress();
+            updateNavButtons();
+        }
+
+        function startFullTest() {
+            currentSection = 'fullTest';
+            currentQuestions = [];
+            
+            // Combine all sections
+            Object.keys(testData).forEach(section => {
+                testData[section].forEach((q, i) => {
+                    currentQuestions.push({...q, type: section, originalIndex: i});
+                });
+            });
+            
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            showingAnswers = false;
+            showingExplanations = false;
+            
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('testContainer').classList.remove('hidden');
+            document.getElementById('resultsContainer').classList.add('hidden');
+            
+            document.getElementById('sectionTitle').textContent = 'Complete Practice Test';
+            
+            renderQuestion();
+            updateProgress();
+            updateNavButtons();
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            if (currentQuestions.length === 0) return;
+            
+            const question = currentQuestions[currentQuestionIndex];
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question current';
+            
+            // Question header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'question-header';
+            headerDiv.innerHTML = `
+                <span class="question-number">${currentQuestionIndex + 1} of ${currentQuestions.length}</span>
+            `;
+            questionDiv.appendChild(headerDiv);
+            
+            // Question text
+            const textDiv = document.createElement('div');
+            textDiv.className = 'question-text';
+            
+            let questionText = '';
+            if (question.question) {
+                questionText = question.question;
+            } else if (question.sentence) {
+                questionText = question.sentence;
+            }
+            
+            textDiv.innerHTML = questionText;
+            questionDiv.appendChild(textDiv);
+            
+            // Answer input
+            if (question.options) {
+                // Multiple choice
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'options';
+                
+                question.options.forEach(option => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'option';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question_${currentQuestionIndex}`;
+                    input.value = option;
+                    input.id = `option_${currentQuestionIndex}_${option}`;
+                    
+                    if (userAnswers[currentQuestionIndex] === option) {
+                        input.checked = true;
+                    }
+                    
+                    input.addEventListener('change', () => {
+                        userAnswers[currentQuestionIndex] = option;
+                    });
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = input.id;
+                    label.textContent = option;
+                    
+                    optionDiv.appendChild(input);
+                    optionDiv.appendChild(label);
+                    optionsDiv.appendChild(optionDiv);
+                });
+                
+                questionDiv.appendChild(optionsDiv);
+            } else {
+                // Text input
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'text-input';
+                input.placeholder = 'Enter your answer here...';
+                input.value = userAnswers[currentQuestionIndex] || '';
+                
+                input.addEventListener('input', () => {
+                    userAnswers[currentQuestionIndex] = input.value;
+                });
+                
+                questionDiv.appendChild(input);
+            }
+            
+            // Show answer if requested
+            if (showingAnswers) {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'result-item correct';
+                answerDiv.innerHTML = `<strong>Correct Answer:</strong> ${question.answer}`;
+                questionDiv.appendChild(answerDiv);
+            }
+            
+            // Show explanation if requested
+            if (showingExplanations && question.explanation) {
+                const explanationDiv = document.createElement('div');
+                explanationDiv.className = 'explanation';
+                explanationDiv.innerHTML = `<strong>Explanation:</strong> ${question.explanation}`;
+                questionDiv.appendChild(explanationDiv);
+            }
+            
+            container.appendChild(questionDiv);
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+                updateProgress();
+                updateNavButtons();
+            } else {
+                finishTest();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+                updateProgress();
+                updateNavButtons();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        function updateNavButtons() {
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextBtn').textContent = 
+                currentQuestionIndex === currentQuestions.length - 1 ? 'Finish Test' : 'Next →';
+        }
+
+        function showAnswers() {
+            showingAnswers = !showingAnswers;
+            document.getElementById('showAnswersBtn').textContent = 
+                showingAnswers ? 'Hide Answers' : 'Show Answers';
+            renderQuestion();
+        }
+
+        function showExplanations() {
+            showingExplanations = !showingExplanations;
+            document.getElementById('showExplanationsBtn').textContent = 
+                showingExplanations ? 'Hide Explanations' : 'Explanations';
+            renderQuestion();
+        }
+
+        function finishTest() {
+            // Calculate score
+            let score = 0;
+            const results = [];
+            
+            currentQuestions.forEach((question, index) => {
+                const userAnswer = userAnswers[index] || '';
+                const isCorrect = normalizeAnswer(userAnswer) === normalizeAnswer(question.answer);
+                
+                if (isCorrect) score++;
+                
+                results.push({
+                    question,
+                    userAnswer,
+                    isCorrect,
+                    questionNumber: index + 1
+                });
+            });
+            
+            displayResults(score, currentQuestions.length, results);
+        }
+
+        function displayResults(score, total, results) {
+            document.getElementById('testContainer').classList.add('hidden');
+            document.getElementById('resultsContainer').classList.remove('hidden');
+            
+            const percentage = Math.round((score / total) * 100);
+            document.getElementById('finalScore').textContent = `${score}/${total}`;
+            document.getElementById('scorePercentage').textContent = `${percentage}%`;
+            
+            // Score message
+            let message = '';
+            if (percentage >= 90) message = 'Excellent work! Outstanding performance!';
+            else if (percentage >= 80) message = 'Very good! Well done!';
+            else if (percentage >= 70) message = 'Good job! Keep practicing!';
+            else if (percentage >= 60) message = 'Not bad, but there\'s room for improvement.';
+            else message = 'Keep studying and try again!';
+            
+            document.getElementById('scoreMessage').textContent = message;
+            
+            // Detailed results
+            const detailsContainer = document.getElementById('detailedResults');
+            let detailsHTML = '<h3>Detailed Results:</h3>';
+            
+            results.forEach(result => {
+                const statusIcon = result.isCorrect ? '✅' : '❌';
+                const statusClass = result.isCorrect ? 'correct' : 'incorrect';
+                
+                detailsHTML += `
+                    <div class="result-item ${statusClass}">
+                        <strong>Question ${result.questionNumber}:</strong> ${statusIcon}<br>
+                        <strong>Your answer:</strong> ${result.userAnswer || '(no answer)'}<br>
+                        <strong>Correct answer:</strong> ${result.question.answer}
+                        ${result.question.explanation ? `<div class="explanation"><strong>Explanation:</strong> ${result.question.explanation}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            detailsContainer.innerHTML = detailsHTML;
+        }
+
+        function normalizeAnswer(answer) {
+            return answer.toLowerCase().trim().replace(/\s+/g, ' ');
+        }
+
+        function returnToMenu() {
+            document.getElementById('testContainer').classList.add('hidden');
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('mainMenu').classList.remove('hidden');
+        }
+
+        function generateNewTest() {
+            alert('🚧 Feature Coming Soon!\n\nThis would connect to a database of additional test sets. For now, you can:\n• Try different sections individually\n• Take the complete test again\n• Contact your teacher for more practice materials');
+        }
+
+        function reviewAnswers() {
+            // Go back to test with answers and explanations shown
+            showingAnswers = true;
+            showingExplanations = true;
+            currentQuestionIndex = 0;
+            
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('testContainer').classList.remove('hidden');
+            
+            document.getElementById('showAnswersBtn').textContent = 'Hide Answers';
+            document.getElementById('showExplanationsBtn').textContent = 'Hide Explanations';
+            
+            renderQuestion();
+            updateProgress();
+            updateNavButtons();
+        }
+
+        // Initialize the app
+        window.addEventListener('load', () => {
+            // App is ready
+            console.log('C1 Practice Test loaded successfully!');
+        });
+    </script>
+</body>
+</html>
